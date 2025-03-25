@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ProjectMapper">
+    <select id="searchProjects" resultType="com.example.demo.dto.SearchResult">
+        SELECT DISTINCT
+            p.*
+        FROM
+            projects p
+            LEFT JOIN wbs w ON p.project_id = w.project_id
+            LEFT JOIN engineers e ON w.wbs_no = e.wbs_no
+        <where>
+            <if test="projectName != null and projectName != ''">
+                AND p.project_name LIKE CONCAT('%', #{projectName}, '%')
+            </if>
+            <if test="salesUserName != null and salesUserName != ''">
+                AND p.sales_user_name LIKE CONCAT('%', #{salesUserName}, '%')
+            </if>
+            <if test="projectManagerName != null and projectManagerName != ''">
+                AND p.project_manager_name LIKE CONCAT('%', #{projectManagerName}, '%')
+            </if>
+            <if test="wbsNo != null and wbsNo != ''">
+                AND w.wbs_no = #{wbsNo}
+            </if>
+            <if test="wbsName != null and wbsName != ''">
+                AND w.wbs_name LIKE CONCAT('%', #{wbsName}, '%')
+            </if>
+            <if test="engineerName != null and engineerName != ''">
+                AND e.engineer_name LIKE CONCAT('%', #{engineerName}, '%')
+            </if>
+            <if test="contractDateFrom != null">
+                AND p.contract_date >= #{contractDateFrom}
+            </if>
+            <if test="contractDateTo != null">
+                AND p.contract_date &lt;= #{contractDateTo}
+            </if>
+        </where>
+        ORDER BY p.project_id
+    </select>
+</mapper>
