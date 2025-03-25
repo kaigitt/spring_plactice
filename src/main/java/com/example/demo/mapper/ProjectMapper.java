@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Select;
 import com.example.demo.entity.Project;
 import com.example.demo.dto.SearchForm;
 import com.example.demo.dto.SearchResult;
+import com.example.demo.dto.AdvancedSearchForm;
 
 @Mapper
 public interface ProjectMapper {
@@ -15,4 +16,6 @@ public interface ProjectMapper {
 
     // XMLで定義された検索メソッド
     List<SearchResult> searchProjects(SearchForm form);
+
+    List<SearchResult> advancedSearchProjects(AdvancedSearchForm form);
 } 

@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.SearchForm;
 import com.example.demo.dto.SearchResult;
+import com.example.demo.dto.AdvancedSearchForm;
 import com.example.demo.mapper.ProjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,19 +25,38 @@ public class SearchService {
     private ProjectMapper projectMapper;
 
     public Page<SearchResult> search(SearchForm form, int page) {
-
         try {
             List<SearchResult> results = projectMapper.searchProjects(form);
-
-            int start = page * PAGE_SIZE;
-            int end = Math.min((start + PAGE_SIZE), results.size());
-
-            List<SearchResult> pageContent = results.subList(start, end);
-
-            return new PageImpl<>(pageContent, PageRequest.of(page, PAGE_SIZE), results.size());
+            return createPage(results, page);
         } catch (Exception e) {
             logger.error("検索処理で予期せぬエラーが発生しました", e);
             throw new RuntimeException("検索処理でエラーが発生しました", e);
         }
+    }
+
+    public Page<SearchResult> advancedSearch(AdvancedSearchForm form, int page) {
+        try {
+            List<SearchResult> results = projectMapper.advancedSearchProjects(form);
+            return createPage(results, page);
+        } catch (Exception e) {
+            logger.error("詳細検索処理で予期せぬエラーが発生しました", e);
+            throw new RuntimeException("詳細検索処理でエラーが発生しました", e);
+        }
+    }
+
+    public List<SearchResult> getAllAdvancedSearchResults(AdvancedSearchForm form) {
+        try {
+            return projectMapper.advancedSearchProjects(form);
+        } catch (Exception e) {
+            logger.error("CSV出力用の検索処理で予期せぬエラーが発生しました", e);
+            throw new RuntimeException("CSV出力用の検索処理でエラーが発生しました", e);
+        }
+    }
+
+    private Page<SearchResult> createPage(List<SearchResult> results, int page) {
+        int start = page * PAGE_SIZE;
+        int end = Math.min((start + PAGE_SIZE), results.size());
+        List<SearchResult> pageContent = results.subList(start, end);
+        return new PageImpl<>(pageContent, PageRequest.of(page, PAGE_SIZE), results.size());
     }
 } 

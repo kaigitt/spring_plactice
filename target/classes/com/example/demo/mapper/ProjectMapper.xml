@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.mapper.ProjectMapper">
-    <select id="searchProjects" resultType="com.example.demo.dto.SearchResult">
+    <select id="searchProjects" parameterType="com.example.demo.dto.SearchForm" resultType="com.example.demo.dto.SearchResult">
         SELECT DISTINCT
             p.*
         FROM
@@ -33,6 +33,142 @@
             <if test="contractDateTo != null">
                 AND p.contract_date &lt;= #{contractDateTo}
             </if>
+        </where>
+        ORDER BY p.project_id
+    </select>
+
+    <select id="advancedSearchProjects" parameterType="com.example.demo.dto.AdvancedSearchForm" resultType="com.example.demo.dto.SearchResult">
+        SELECT DISTINCT
+            p.*
+        FROM
+            projects p
+            LEFT JOIN wbs w ON p.project_id = w.project_id
+            LEFT JOIN engineers e ON w.wbs_no = e.wbs_no
+        <where>
+            <foreach collection="fields" item="field" index="i">
+                <choose>
+                    <when test="i > 0">
+                        ${operators[i-1]} 
+                    </when>
+                </choose>
+                <choose>
+                    <when test="field == 'project_name'">
+                        <choose>
+                            <when test="comparisons[i] == 'contains'">
+                                p.project_name LIKE CONCAT('%', #{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'startsWith'">
+                                p.project_name LIKE CONCAT(#{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'endsWith'">
+                                p.project_name LIKE CONCAT('%', #{values[${i}]})
+                            </when>
+                            <when test="comparisons[i] == 'equals'">
+                                p.project_name = #{values[${i}]}
+                            </when>
+                        </choose>
+                    </when>
+                    <when test="field == 'sales_user_name'">
+                        <choose>
+                            <when test="comparisons[i] == 'contains'">
+                                p.sales_user_name LIKE CONCAT('%', #{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'startsWith'">
+                                p.sales_user_name LIKE CONCAT(#{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'endsWith'">
+                                p.sales_user_name LIKE CONCAT('%', #{values[${i}]})
+                            </when>
+                            <when test="comparisons[i] == 'equals'">
+                                p.sales_user_name = #{values[${i}]}
+                            </when>
+                        </choose>
+                    </when>
+                    <when test="field == 'project_manager_name'">
+                        <choose>
+                            <when test="comparisons[i] == 'contains'">
+                                p.project_manager_name LIKE CONCAT('%', #{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'startsWith'">
+                                p.project_manager_name LIKE CONCAT(#{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'endsWith'">
+                                p.project_manager_name LIKE CONCAT('%', #{values[${i}]})
+                            </when>
+                            <when test="comparisons[i] == 'equals'">
+                                p.project_manager_name = #{values[${i}]}
+                            </when>
+                        </choose>
+                    </when>
+                    <when test="field == 'wbs_no'">
+                        <choose>
+                            <when test="comparisons[i] == 'contains'">
+                                w.wbs_no LIKE CONCAT('%', #{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'startsWith'">
+                                w.wbs_no LIKE CONCAT(#{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'endsWith'">
+                                w.wbs_no LIKE CONCAT('%', #{values[${i}]})
+                            </when>
+                            <when test="comparisons[i] == 'equals'">
+                                w.wbs_no = #{values[${i}]}
+                            </when>
+                        </choose>
+                    </when>
+                    <when test="field == 'wbs_name'">
+                        <choose>
+                            <when test="comparisons[i] == 'contains'">
+                                w.wbs_name LIKE CONCAT('%', #{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'startsWith'">
+                                w.wbs_name LIKE CONCAT(#{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'endsWith'">
+                                w.wbs_name LIKE CONCAT('%', #{values[${i}]})
+                            </when>
+                            <when test="comparisons[i] == 'equals'">
+                                w.wbs_name = #{values[${i}]}
+                            </when>
+                        </choose>
+                    </when>
+                    <when test="field == 'engineer_name'">
+                        <choose>
+                            <when test="comparisons[i] == 'contains'">
+                                e.engineer_name LIKE CONCAT('%', #{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'startsWith'">
+                                e.engineer_name LIKE CONCAT(#{values[${i}]}, '%')
+                            </when>
+                            <when test="comparisons[i] == 'endsWith'">
+                                e.engineer_name LIKE CONCAT('%', #{values[${i}]})
+                            </when>
+                            <when test="comparisons[i] == 'equals'">
+                                e.engineer_name = #{values[${i}]}
+                            </when>
+                        </choose>
+                    </when>
+                    <when test="field == 'contract_date'">
+                        <choose>
+                            <when test="comparisons[i] == 'equals'">
+                                p.contract_date = #{values[${i}]}
+                            </when>
+                            <when test="comparisons[i] == 'greater'">
+                                p.contract_date > #{values[${i}]}
+                            </when>
+                            <when test="comparisons[i] == 'less'">
+                                p.contract_date &lt; #{values[${i}]}
+                            </when>
+                            <when test="comparisons[i] == 'greaterOrEqual'">
+                                p.contract_date >= #{values[${i}]}
+                            </when>
+                            <when test="comparisons[i] == 'lessOrEqual'">
+                                p.contract_date &lt;= #{values[${i}]}
+                            </when>
+                        </choose>
+                    </when>
+                </choose>
+            </foreach>
         </where>
         ORDER BY p.project_id
     </select>
