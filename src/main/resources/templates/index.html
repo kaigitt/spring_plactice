@@ -65,12 +65,11 @@
                     <!-- CSVファイルインポート部分 -->
                     <div class="mb-4">
                         <h5>検索条件CSVインポート</h5>
-                        <div class="input-group">
-                            <input type="file" class="form-control" id="csvFileInput" accept=".csv" 
-                                aria-describedby="csvFileHelp">
-                            <button class="btn btn-outline-secondary" type="button" id="importCsvButton">
-                                インポート
-                            </button>
+                        <div>
+                            <label class="btn btn-outline-secondary" for="csvFileInput">
+                                CSVファイルを選択してインポート
+                            </label>
+                            <input type="file" class="d-none" id="csvFileInput" accept=".csv">
                         </div>
                         <div id="csvFileHelp" class="form-text">
                             CSVファイル形式: 検索項目,検索値,比較演算子,論理演算子
@@ -83,6 +82,7 @@
                             <div class="search-condition row g-3 mb-3">
                                 <div class="col-md-3">
                                     <select class="form-select search-field" name="fields[]">
+                                        <option value="">-</option>
                                         <option value="project_name">プロジェクト名</option>
                                         <option value="sales_user_name">営業担当者</option>
                                         <option value="project_manager_name">プロジェクトマネージャー</option>
@@ -137,6 +137,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const searchConditions = document.getElementById('searchConditions');
             const addConditionBtn = document.getElementById('addCondition');
+            const csvFileInput = document.getElementById('csvFileInput');
+            const errorDiv = document.getElementById('errorMessage');
 
             // 条件追加ボタンのクリックイベント
             addConditionBtn.addEventListener('click', function() {
@@ -188,13 +190,9 @@
                 }
             });
 
-            // ファイル選択の処理
-            const csvFileInput = document.getElementById('csvFileInput');
-            const importCsvButton = document.getElementById('importCsvButton');
-            const errorDiv = document.getElementById('errorMessage');
-
-            importCsvButton.addEventListener('click', async () => {
-                const file = csvFileInput.files[0];
+            // ファイル選択時の処理
+            csvFileInput.addEventListener('change', async (event) => {
+                const file = event.target.files[0];
                 if (!file) {
                     errorDiv.textContent = 'ファイルを選択してください。';
                     errorDiv.style.display = 'block';
@@ -336,7 +334,7 @@
                                 <option value="lessOrEqual">以前</option>
                             `;
                         }
-                        
+
                         comparisonSelect.value = comparisonMapping[row.comparison];
                         operatorSelect.value = row.operator;
 
