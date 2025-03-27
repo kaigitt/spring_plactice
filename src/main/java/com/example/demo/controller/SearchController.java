@@ -216,4 +216,34 @@ public class SearchController {
         }
         return value;
     }
+
+    @GetMapping("/search/count")
+    public String getSearchCount(
+            @ModelAttribute SearchForm form,
+            Model model) {
+        try {
+            long count = searchService.getSearchCount(form);
+            model.addAttribute("count", count);
+            return "fragments/search-count :: searchCountModal";
+        } catch (Exception e) {
+            logger.error("検索件数の取得でエラーが発生しました", e);
+            model.addAttribute("error", "検索件数の取得でエラーが発生しました。");
+            return "fragments/search-count :: searchCountModal";
+        }
+    }
+
+    @GetMapping("/search/advanced/count")
+    public String getAdvancedSearchCount(
+            @ModelAttribute AdvancedSearchForm form,
+            Model model) {
+        try {
+            long count = searchService.getAdvancedSearchCount(form);
+            model.addAttribute("count", count);
+            return "fragments/search-count :: searchCountModal";
+        } catch (Exception e) {
+            logger.error("詳細検索の件数取得でエラーが発生しました", e);
+            model.addAttribute("error", "検索件数の取得でエラーが発生しました。");
+            return "fragments/search-count :: searchCountModal";
+        }
+    }
 }

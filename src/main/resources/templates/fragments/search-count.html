@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="searchCountModal">
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <span th:text="${error}">エラーメッセージ</span>
+        </div>
+        <div th:unless="${error}">
+            <p>検索結果が <span th:text="${count}">0</span> 件見つかりました。</p>
+        </div>
+    </div>
+</body>
+</html> 

@@ -53,6 +53,26 @@ public class SearchService {
         }
     }
 
+    public long getSearchCount(SearchForm form) {
+        try {
+            List<SearchResult> results = projectMapper.searchProjects(form);
+            return results.size();
+        } catch (Exception e) {
+            logger.error("検索件数の取得で予期せぬエラーが発生しました", e);
+            throw new RuntimeException("検索件数の取得でエラーが発生しました", e);
+        }
+    }
+
+    public long getAdvancedSearchCount(AdvancedSearchForm form) {
+        try {
+            List<SearchResult> results = projectMapper.advancedSearchProjects(form);
+            return results.size();
+        } catch (Exception e) {
+            logger.error("詳細検索の件数取得で予期せぬエラーが発生しました", e);
+            throw new RuntimeException("詳細検索の件数取得でエラーが発生しました", e);
+        }
+    }
+
     private Page<SearchResult> createPage(List<SearchResult> results, int page) {
         int start = page * PAGE_SIZE;
         int end = Math.min((start + PAGE_SIZE), results.size());
