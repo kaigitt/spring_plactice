@@ -166,22 +166,37 @@
                 'より後', 'より前', '以降', '以前'
             ],
             VALID_OPERATORS: ['AND', 'OR', ''],
-            CSV_EXPECTED_HEADER: '検索項目,検索値,比較演算子,論理演算子'
+            CSV_EXPECTED_HEADER: '検索項目,検索値,比較演算子,論理演算子',
+            MESSAGE_TYPE: {
+                ERROR: 'error',
+                SUCCESS: 'success'
+            }
         };
 
         // ユーティリティ関数
         const utils = {
-            showMessage: function(message, isError = true) {
+            showMessage: function(message, type) {
                 const errorDiv = document.getElementById('errorMessage');
                 errorDiv.textContent = message;
-                errorDiv.className = isError ? 'alert alert-danger mt-3' : 'alert alert-success mt-3';
+                
+                if (type === CONSTANTS.MESSAGE_TYPE.SUCCESS) {
+                    errorDiv.className = 'alert alert-success mt-3';
+                } else {
+                    errorDiv.className = 'alert alert-danger mt-3';
+                }
+                
                 errorDiv.style.display = 'block';
+                
+                const duration = type === CONSTANTS.MESSAGE_TYPE.SUCCESS 
+                    ? CONSTANTS.SUCCESS_DISPLAY_DURATION 
+                    : CONSTANTS.ERROR_DISPLAY_DURATION;
+
                 setTimeout(() => {
                     errorDiv.style.display = 'none';
-                    if (!isError) {
+                    if (type === CONSTANTS.MESSAGE_TYPE.SUCCESS) {
                         errorDiv.className = 'alert alert-danger mt-3';
                     }
-                }, isError ? CONSTANTS.ERROR_DISPLAY_DURATION : CONSTANTS.SUCCESS_DISPLAY_DURATION);
+                }, duration);
             },
 
             validateSearchConditions: function(form) {
@@ -189,11 +204,11 @@
                 const values = Array.from(form.querySelectorAll('.search-value')).map(v => v.value);
                 
                 if (fields.some(f => !f)) {
-                    this.showMessage('検索項目を選択してください');
+                    this.showMessage('検索項目を選択してください', CONSTANTS.MESSAGE_TYPE.ERROR);
                     return false;
                 }
                 if (values.some(v => !v.trim())) {
-                    this.showMessage('検索値を入力してください');
+                    this.showMessage('検索値を入力してください', CONSTANTS.MESSAGE_TYPE.ERROR);
                     return false;
                 }
                 return true;
@@ -209,29 +224,36 @@
 
             // 検索条件の追加・削除のイベントハンドラ
             function handleConditionManagement() {
-                // 条件追加ボタンのクリックイベント
-                addConditionBtn.addEventListener('click', function() {
-                    const template = searchConditions.querySelector('.search-condition').cloneNode(true);
-                    resetSearchCondition(template);
-                    searchConditions.appendChild(template);
-                    attachRemoveHandler(template.querySelector('.remove-condition'));
-                });
-
-                // 初期の削除ボタンにイベントリスナーを追加
+                addConditionBtn.addEventListener('click', addSearchCondition);
                 attachRemoveHandler(document.querySelector('.remove-condition'));
             }
 
+            function addSearchCondition() {
+                const template = searchConditions.querySelector('.search-condition').cloneNode(true);
+                resetSearchCondition(template);
+                searchConditions.appendChild(template);
+                attachRemoveHandler(template.querySelector('.remove-condition'));
+            }
+
             function resetSearchCondition(template) {
-                template.querySelector('.search-value').value = '';
-                template.querySelector('.search-field').selectedIndex = 0;
-                template.querySelector('.search-comparison').selectedIndex = 0;
-                template.querySelector('.search-operator').selectedIndex = 0;
+                const elements = {
+                    value: template.querySelector('.search-value'),
+                    field: template.querySelector('.search-field'),
+                    comparison: template.querySelector('.search-comparison'),
+                    operator: template.querySelector('.search-operator')
+                };
+
+                elements.value.value = '';
+                elements.field.selectedIndex = 0;
+                elements.comparison.selectedIndex = 0;
+                elements.operator.selectedIndex = 0;
             }
 
             function attachRemoveHandler(button) {
                 button.addEventListener('click', function() {
+                    const condition = this.closest('.search-condition');
                     if (searchConditions.children.length > 1) {
-                        this.closest('.search-condition').remove();
+                        condition.remove();
                     }
                 });
             }
@@ -242,45 +264,75 @@
                 const form = event.target;
                 currentForm = form;
 
-                if (type === 'advanced' && !utils.validateSearchConditions(form)) {
-                    return;
+                // 詳細検索時のバリデーション
+                if (type === 'advanced') {
+                    if (!utils.validateSearchConditions(form)) {
+                        return;
+                    }
                 }
 
                 try {
-                    const url = type === 'simple' ? '/search/count' : '/search/advanced/count';
-                    const formData = new FormData(form);
-                    const params = new URLSearchParams(formData);
-
-                    const response = await fetch(`${url}?${params.toString()}`);
-                    if (!response.ok) {
-                        throw new Error('検索処理でエラーが発生しました');
-                    }
-                    const html = await response.text();
-                    document.getElementById('searchCountModalBody').innerHTML = html;
-                    searchCountModal.show();
+                    const searchCount = await fetchSearchCount(form, type);
+                    displaySearchCount(searchCount);
                 } catch (error) {
-                    utils.showMessage(error.message);
+                    utils.showMessage(error.message, CONSTANTS.MESSAGE_TYPE.ERROR);
                 }
             }
 
-            // 検索実行ボタンのイベントリスナー
-            document.getElementById('proceedSearchBtn').addEventListener('click', () => {
-                if (currentForm) {
-                    currentForm.target = '_blank';
-                    currentForm.submit();
-                    searchCountModal.hide();
+            async function fetchSearchCount(form, type) {
+                const url = getSearchCountUrl(type);
+                const params = new URLSearchParams(new FormData(form));
+                
+                const response = await fetch(`${url}?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error('検索処理でエラーが発生しました');
                 }
+                
+                return await response.text();
+            }
+
+            function getSearchCountUrl(type) {
+                if (type === 'simple') {
+                    return '/search/count';
+                }
+                return '/search/advanced/count';
+            }
+
+            function displaySearchCount(html) {
+                const modalBody = document.getElementById('searchCountModalBody');
+                modalBody.innerHTML = html;
+                searchCountModal.show();
+            }
+
+            // 検索実行ボタンのイベントリスナー
+            document.getElementById('proceedSearchBtn').addEventListener('click', function() {
+                if (!currentForm) {
+                    return;
+                }
+
+                executeSearch(currentForm);
             });
 
+            function executeSearch(form) {
+                form.target = '_blank';
+                form.submit();
+                searchCountModal.hide();
+            }
+
             // フォームのイベントリスナー設定
-            ['simpleSearchForm', 'advancedSearchForm'].forEach(formId => {
-                const form = document.getElementById(formId);
-                if (form) {
-                    form.addEventListener('submit', (e) => 
-                        handleSearchSubmit(e, formId === 'simpleSearchForm' ? 'simple' : 'advanced')
-                    );
-                }
-            });
+            function setupFormListeners() {
+                const formConfigs = [
+                    { id: 'simpleSearchForm', type: 'simple' },
+                    { id: 'advancedSearchForm', type: 'advanced' }
+                ];
+
+                formConfigs.forEach(config => {
+                    const form = document.getElementById(config.id);
+                    if (form) {
+                        form.addEventListener('submit', (e) => handleSearchSubmit(e, config.type));
+                    }
+                });
+            }
 
             // 契約年月日フィールド変更時の処理
             document.addEventListener('change', function(e) {
@@ -290,83 +342,129 @@
             });
 
             function updateComparisonOptions(fieldSelect) {
-                const comparisonSelect = fieldSelect.closest('.search-condition').querySelector('.search-comparison');
-                if (fieldSelect.value === 'contract_date') {
-                    comparisonSelect.innerHTML = `
+                const comparisonSelect = fieldSelect.closest('.search-condition')
+                    .querySelector('.search-comparison');
+
+                const options = getComparisonOptions(fieldSelect.value);
+                comparisonSelect.innerHTML = options;
+            }
+
+            function getComparisonOptions(fieldValue) {
+                if (fieldValue === 'contract_date') {
+                    return `
                         <option value="equals">と一致する</option>
                         <option value="greater">より後</option>
                         <option value="less">より前</option>
                         <option value="greaterOrEqual">以降</option>
                         <option value="lessOrEqual">以前</option>
                     `;
-                } else {
-                    comparisonSelect.innerHTML = `
-                        <option value="contains">を含む</option>
-                        <option value="startsWith">から始まる</option>
-                        <option value="endsWith">で終わる</option>
-                        <option value="equals">と一致する</option>
-                    `;
                 }
+
+                return `
+                    <option value="contains">を含む</option>
+                    <option value="startsWith">から始まる</option>
+                    <option value="endsWith">で終わる</option>
+                    <option value="equals">と一致する</option>
+                `;
             }
 
             // 初期化
             handleConditionManagement();
+            setupFormListeners();
         });
 
         // CSV関連の処理
         async function downloadCSV() {
             const form = document.getElementById('advancedSearchForm');
-            const searchValues = form.querySelectorAll('.search-value');
             
-            if (Array.from(searchValues).some(input => !input.value.trim())) {
-                utils.showMessage('検索条件の入力値が未入力の項目があります。全ての検索条件に値を入力してください。');
+            if (!validateCSVDownload(form)) {
                 return;
             }
 
             try {
-                const params = new URLSearchParams();
-                ['fields', 'values', 'comparisons', 'operators'].forEach(param => {
-                    const elements = form.querySelectorAll(`.search-${param.slice(0, -1)}`);
-                    Array.from(elements).forEach((el, i) => {
-                        if (param !== 'operators' || i < elements.length - 1) {
-                            params.append(param, el.value);
-                        }
-                    });
-                });
-
-                const response = await fetch(`/search/advanced/csv?${params.toString()}`);
-                if (!response.ok) {
-                    throw new Error(await response.text());
-                }
-
-                const blob = await response.blob();
-                const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-                const defaultFilename = `searchProject_${today}.csv`;
-
-                try {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: defaultFilename,
-                        types: [{
-                            description: 'CSV File',
-                            accept: {
-                                'text/csv': ['.csv'],
-                            },
-                        }],
-                    });
-
-                    const writable = await handle.createWritable();
-                    await writable.write(blob);
-                    await writable.close();
-
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        throw err;
-                    }
-                }
+                const csvData = await fetchCSVData(form);
+                await saveCSVFile(csvData);
             } catch (error) {
-                console.error('CSVのダウンロードに失敗しました:', error);
-                utils.showMessage(`CSVのダウンロードに失敗しました: ${error.message}`);
+                handleCSVError(error);
             }
+        }
+
+        function validateCSVDownload(form) {
+            const searchValues = form.querySelectorAll('.search-value');
+            const hasEmptyValues = Array.from(searchValues).some(input => !input.value.trim());
+
+            if (hasEmptyValues) {
+                utils.showMessage(
+                    '検索条件の入力値が未入力の項目があります。全ての検索条件に値を入力してください。',
+                    CONSTANTS.MESSAGE_TYPE.ERROR
+                );
+                return false;
+            }
+            return true;
+        }
+
+        async function fetchCSVData(form) {
+            const params = buildCSVRequestParams(form);
+            const response = await fetch(`/search/advanced/csv?${params.toString()}`);
+
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+
+            return await response.blob();
+        }
+
+        function buildCSVRequestParams(form) {
+            const params = new URLSearchParams();
+            const paramTypes = ['fields', 'values', 'comparisons', 'operators'];
+
+            paramTypes.forEach(param => {
+                const elements = form.querySelectorAll(`.search-${param.slice(0, -1)}`);
+                Array.from(elements).forEach((el, i) => {
+                    if (param !== 'operators' || i < elements.length - 1) {
+                        params.append(param, el.value);
+                    }
+                });
+            });
+
+            return params;
+        }
+
+        async function saveCSVFile(blob) {
+            const filename = generateCSVFilename();
+            const options = {
+                suggestedName: filename,
+                types: [{
+                    description: 'CSV File',
+                    accept: {
+                        'text/csv': ['.csv'],
+                    },
+                }],
+            };
+
+            try {
+                const handle = await window.showSaveFilePicker(options);
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    throw err;
+                }
+            }
+        }
+
+        function generateCSVFilename() {
+            const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            return `searchProject_${today}.csv`;
+        }
+
+        function handleCSVError(error) {
+            console.error('CSVのダウンロードに失敗しました:', error);
+            utils.showMessage(
+                `CSVのダウンロードに失敗しました: ${error.message}`,
+                CONSTANTS.MESSAGE_TYPE.ERROR
+            );
         }
     </script>
 </body>
