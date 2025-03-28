@@ -97,7 +97,7 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary" onclick="handleSubmit(event, 'advanced')">検索</button>
+                                <button type="submit" class="btn btn-primary">検索</button>
                                 <button type="button" class="btn btn-success" onclick="downloadCSV()">CSV出力</button>
                                 <button type="reset" class="btn btn-secondary">クリア</button>
                             </div>
@@ -383,14 +383,20 @@
                 const fields = Array.from(form.querySelectorAll('.search-field')).map(f => f.value);
                 const values = Array.from(form.querySelectorAll('.search-value')).map(v => v.value);
 
-                if (fields.some(f => !f)) {
-                    this.messageManager.show('検索項目を選択してください', CONSTANTS.MESSAGE_TYPE.ERROR);
-                    return false;
+                // 検索項目が空かどうかをチェック
+                for (let i = 0; i < fields.length; i++) {
+                    if (!fields[i]) {
+                        this.messageManager.show('検索項目を選択してください', CONSTANTS.MESSAGE_TYPE.ERROR);
+                        return false;
+                    }
                 }
 
-                if (values.some(v => !v.trim())) {
-                    this.messageManager.show('検索値を入力してください', CONSTANTS.MESSAGE_TYPE.ERROR);
-                    return false;
+                // 検索値が空かどうかをチェック
+                for (let i = 0; i < values.length; i++) {
+                    if (!values[i].trim()) {
+                        this.messageManager.show('検索値を入力してください', CONSTANTS.MESSAGE_TYPE.ERROR);
+                        return false;
+                    }
                 }
 
                 return true;
