@@ -13,43 +13,19 @@
         <!-- 簡易検索 -->
         <section class="mb-5">
             <h2 class="search-title mt-4 mb-4">簡易検索</h2>
-            <form id="simpleSearchForm" th:action="@{/search}" method="get" th:object="${searchForm}" class="mb-4" onsubmit="return handleSearchSubmit(event, 'simple')">
+            <form id="simpleSearchForm" th:action="@{/search}" method="get" th:object="${searchForm}" class="mb-4">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="projectName" class="form-label">プロジェクト名</label>
-                        <input type="text" class="form-control" id="projectName" th:field="*{projectName}">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" th:field="*{projectName}" placeholder="プロジェクト名">
                     </div>
-                    <div class="col-md-4">
-                        <label for="salesUserName" class="form-label">営業担当者</label>
-                        <input type="text" class="form-control" id="salesUserName" th:field="*{salesUserName}">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" th:field="*{salesUserName}" placeholder="営業担当者">
                     </div>
-                    <div class="col-md-4">
-                        <label for="projectManagerName" class="form-label">プロジェクトマネージャー</label>
-                        <input type="text" class="form-control" id="projectManagerName" th:field="*{projectManagerName}">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" th:field="*{projectManagerName}" placeholder="プロジェクトマネージャー">
                     </div>
-                    <div class="col-md-4">
-                        <label for="wbsNo" class="form-label">WBS番号</label>
-                        <input type="text" class="form-control" id="wbsNo" th:field="*{wbsNo}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="wbsName" class="form-label">WBS名</label>
-                        <input type="text" class="form-control" id="wbsName" th:field="*{wbsName}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="engineerName" class="form-label">エンジニア名</label>
-                        <input type="text" class="form-control" id="engineerName" th:field="*{engineerName}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="contractDateFrom" class="form-label">契約年月日（開始）</label>
-                        <input type="date" class="form-control" id="contractDateFrom" th:field="*{contractDateFrom}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="contractDateTo" class="form-label">契約年月日（終了）</label>
-                        <input type="date" class="form-control" id="contractDateTo" th:field="*{contractDateTo}">
-                    </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary">検索</button>
-                        <button type="reset" class="btn btn-secondary">クリア</button>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">検索</button>
                     </div>
                 </div>
             </form>
@@ -76,7 +52,7 @@
                         </div>
                     </div>
 
-                    <form id="advancedSearchForm" th:action="@{/search/advanced}" method="get" class="mb-4" onsubmit="return handleSearchSubmit(event, 'advanced')">
+                    <form id="advancedSearchForm" th:action="@{/search/advanced}" method="get" class="mb-4">
                         <div id="searchConditions">
                             <!-- 検索条件テンプレート -->
                             <div class="search-condition row g-3 mb-3">
@@ -121,7 +97,7 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary">検索</button>
+                                <button type="submit" class="btn btn-primary" onclick="handleSubmit(event, 'advanced')">検索</button>
                                 <button type="button" class="btn btn-success" onclick="downloadCSV()">CSV出力</button>
                                 <button type="reset" class="btn btn-secondary">クリア</button>
                             </div>
@@ -596,6 +572,9 @@
             const searchManager = new SearchManager(messageManager);
             const csvManager = new CSVManager(messageManager);
 
+            // グローバル関数の設定
+            window.downloadCSV = () => csvManager.downloadCSV();
+
             // イベントリスナーの設定
             function setupEventListeners() {
                 // 検索条件追加ボタン
@@ -637,9 +616,6 @@
                     }
                 });
             }
-
-            // グローバル関数の設定
-            window.downloadCSV = () => csvManager.downloadCSV();
 
             // 初期化処理の実行
             setupEventListeners();

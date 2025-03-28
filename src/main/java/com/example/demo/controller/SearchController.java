@@ -111,6 +111,7 @@ public class SearchController {
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", searchResults.getTotalPages());
         model.addAttribute("totalElements", searchResults.getTotalElements());
+        model.addAttribute("searchForm", form);
         
         return "search-results";
     }
