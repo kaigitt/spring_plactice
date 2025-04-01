@@ -69,7 +69,7 @@
                     <form id="advancedSearchForm" th:action="@{/search/advanced}" method="get" class="mb-4">
                         <div id="searchConditions">
                             <!-- 検索条件テンプレート -->
-                            <div class="search-condition row g-3 mb-3">
+                            <div class="search-condition template row g-3 mb-3">
                                 <div class="col-md-3">
                                     <select class="form-select search-field" name="fields[]">
                                         <option value="">-</option>
@@ -265,30 +265,32 @@
              */
             addCondition() {
                 const newCondition = this.template.cloneNode(true);
+                newCondition.classList.remove('template');
                 this._resetCondition(newCondition);
                 this.container.appendChild(newCondition);
                 this._attachRemoveHandler(newCondition.querySelector('.remove-condition'));
-                this._setupSelect2(newCondition);
+                return newCondition;
+            }
+
+            /**
+             * 検索条件行を削除
+             */
+            _removeCondition(button) {
+                const condition = button.closest('.search-condition');
+                if (this.container.children.length > 1) {
+                    condition.remove();
+                }
             }
 
             /**
              * 検索条件行を初期化
              */
             _resetCondition(conditionElement) {
-                const elements = {
-                    value: conditionElement.querySelector('.search-value'),
-                    field: conditionElement.querySelector('.search-field'),
-                    comparison: conditionElement.querySelector('.search-comparison'),
-                    operator: conditionElement.querySelector('.search-operator')
-                };
-
-                Object.values(elements).forEach(element => {
-                    if (element.tagName === 'INPUT') {
-                        element.value = '';
-                    } else if (element.tagName === 'SELECT') {
-                        element.selectedIndex = 0;
-                    }
-                });
+                // 検索値のみを初期化
+                const searchValue = conditionElement.querySelector('.search-value');
+                if (searchValue) {
+                    searchValue.value = '';
+                }
             }
 
             /**
@@ -296,10 +298,7 @@
              */
             _attachRemoveHandler(button) {
                 button.addEventListener('click', () => {
-                    const condition = button.closest('.search-condition');
-                    if (this.container.children.length > 1) {
-                        condition.remove();
-                    }
+                    this._removeCondition(button);
                 });
             }
 
@@ -358,20 +357,6 @@
                 return options.map(option => 
                     `<option value="${option.value}">${option.text}</option>`
                 ).join('');
-            }
-
-            /**
-             * Select2の初期化
-             */
-            _setupSelect2(conditionElement) {
-                const fieldSelect = $(conditionElement).find('.search-field');
-                fieldSelect.select2({
-                    theme: 'bootstrap-5',
-                    width: '100%',
-                    placeholder: '検索項目を選択',
-                    allowClear: false,
-                    dropdownParent: $(conditionElement)
-                });
             }
         }
 
@@ -612,16 +597,32 @@
             // グローバル関数の設定
             window.downloadCSV = () => csvManager.downloadCSV();
 
-            // 初期の検索条件にSelect2を設定
-            document.querySelectorAll('.search-condition').forEach(condition => {
-                searchConditionManager._setupSelect2(condition);
-            });
+            // Select2の初期化処理
+            function initializeSelect2(element) {
+                const field = element || document;
+                field.querySelectorAll('.search-field').forEach(field => {
+                    if (!$(field).data('select2')) {
+                        $(field).select2({
+                            theme: 'bootstrap-5',
+                            width: '100%',
+                            placeholder: '検索項目を選択',
+                            allowClear: false,
+                            dropdownParent: $(field).closest('.search-condition')
+                        });
+                    }
+                });
+            }
+
+            // 初期表示時のSelect2初期化
+            initializeSelect2();
 
             // イベントリスナーの設定
             function setupEventListeners() {
                 // 検索条件追加ボタン
                 document.getElementById('addCondition').addEventListener('click', () => {
-                    searchConditionManager.addCondition();
+                    const newCondition = searchConditionManager.addCondition();
+                    // 新しい条件のSelect2を初期化
+                    initializeSelect2(newCondition);
                 });
 
                 // 検索フィールド変更
