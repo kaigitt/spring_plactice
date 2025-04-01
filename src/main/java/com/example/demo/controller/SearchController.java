@@ -23,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 @Controller
 public class SearchController {
     private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
+    private static final String SEARCH_TYPE_SIMPLE = "simple";
+    private static final String SEARCH_TYPE_ADVANCED = "advanced";
 
     @Autowired
     private SearchService searchService;
@@ -63,6 +65,7 @@ public class SearchController {
             model.addAttribute("totalPages", results.getTotalPages());
             model.addAttribute("totalElements", results.getTotalElements());
             model.addAttribute("searchForm", form);
+            model.addAttribute("searchType", SEARCH_TYPE_SIMPLE);
 
             return "search-results";
         } catch (Exception e) {
@@ -112,6 +115,7 @@ public class SearchController {
         model.addAttribute("totalPages", searchResults.getTotalPages());
         model.addAttribute("totalElements", searchResults.getTotalElements());
         model.addAttribute("searchForm", form);
+        model.addAttribute("searchType", SEARCH_TYPE_ADVANCED);
         
         return "search-results";
     }

@@ -67,32 +67,24 @@
                                 <!-- 前へボタン -->
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                                     <a class="page-link"
-                                       th:with="prevPage=${currentPage - 1}"
-                                       th:href="@{${searchUrl}(
-                                           page=${prevPage},
-                                           fields=${advancedForm.fields},
-                                           values=${advancedForm.values},
-                                           comparisons=${advancedForm.comparisons},
-                                           operators=${advancedForm.operators}
-                                       )}"
-                                       th:if="${isAdvanced}"
-                                       aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                    <a class="page-link"
-                                       th:with="prevPage=${currentPage - 1}"
-                                       th:href="@{${searchUrl}(
-                                           page=${prevPage},
-                                           projectName=${searchForm.projectName},
-                                           salesUserName=${searchForm.salesUserName},
-                                           projectManagerName=${searchForm.projectManagerName},
-                                           wbsNo=${searchForm.wbsNo},
-                                           wbsName=${searchForm.wbsName},
-                                           engineerName=${searchForm.engineerName},
-                                           contractDateFrom=${searchForm.contractDateFrom},
-                                           contractDateTo=${searchForm.contractDateTo}
-                                       )}"
-                                       th:unless="${isAdvanced}"
+                                       th:with="prevPage=${currentPage - 1},
+                                                searchUrl=${searchType == 'advanced' ? '/search/advanced' : '/search'},
+                                                params=${searchType == 'advanced' ? {
+                                                    'fields[]': advancedForm.fields,
+                                                    'values[]': advancedForm.values,
+                                                    'comparisons[]': advancedForm.comparisons,
+                                                    'operators[]': advancedForm.operators
+                                                } : {
+                                                    'projectName': searchForm.projectName,
+                                                    'salesUserName': searchForm.salesUserName,
+                                                    'projectManagerName': searchForm.projectManagerName,
+                                                    'wbsNo': searchForm.wbsNo,
+                                                    'wbsName': searchForm.wbsName,
+                                                    'engineerName': searchForm.engineerName,
+                                                    'contractDateFrom': searchForm.contractDateFrom,
+                                                    'contractDateTo': searchForm.contractDateTo
+                                                }}"
+                                       th:href="@{${searchUrl}(page=${prevPage}, ${params})}"
                                        aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
@@ -102,47 +94,47 @@
                                     th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                                     th:classappend="${currentPage == i} ? 'active'">
                                     <a class="page-link"
-                                       th:href="${isAdvanced} ? @{${searchUrl}(
-                                           page=${i},
-                                           'fields[]'=${advancedForm.fields},
-                                           'values[]'=${advancedForm.values},
-                                           'comparisons[]'=${advancedForm.comparisons},
-                                           'operators[]'=${advancedForm.operators}
-                                       )} : @{${searchUrl}(
-                                           page=${i},
-                                           projectName=${searchForm?.projectName},
-                                           salesUserName=${searchForm?.salesUserName},
-                                           projectManagerName=${searchForm?.projectManagerName},
-                                           wbsNo=${searchForm?.wbsNo},
-                                           wbsName=${searchForm?.wbsName},
-                                           engineerName=${searchForm?.engineerName},
-                                           contractDateFrom=${searchForm?.contractDateFrom},
-                                           contractDateTo=${searchForm?.contractDateTo}
-                                       )}"
+                                       th:with="searchUrl=${searchType == 'advanced' ? '/search/advanced' : '/search'},
+                                                params=${searchType == 'advanced' ? {
+                                                    'fields[]': advancedForm.fields,
+                                                    'values[]': advancedForm.values,
+                                                    'comparisons[]': advancedForm.comparisons,
+                                                    'operators[]': advancedForm.operators
+                                                } : {
+                                                    'projectName': searchForm.projectName,
+                                                    'salesUserName': searchForm.salesUserName,
+                                                    'projectManagerName': searchForm.projectManagerName,
+                                                    'wbsNo': searchForm.wbsNo,
+                                                    'wbsName': searchForm.wbsName,
+                                                    'engineerName': searchForm.engineerName,
+                                                    'contractDateFrom': searchForm.contractDateFrom,
+                                                    'contractDateTo': searchForm.contractDateTo
+                                                }}"
+                                       th:href="@{${searchUrl}(page=${i}, ${params})}"
                                        th:text="${i + 1}">
                                     </a>
                                 </li>
                                 <!-- 次へボタン -->
                                 <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                                    <a class="page-link" 
-                                       th:with="nextPage=${currentPage + 1}"
-                                       th:href="${isAdvanced} ? @{${searchUrl}(
-                                           page=${nextPage},
-                                           'fields[]'=${advancedForm.fields},
-                                           'values[]'=${advancedForm.values},
-                                           'comparisons[]'=${advancedForm.comparisons},
-                                           'operators[]'=${advancedForm.operators}
-                                       )} : @{${searchUrl}(
-                                           page=${nextPage},
-                                           projectName=${searchForm?.projectName},
-                                           salesUserName=${searchForm?.salesUserName},
-                                           projectManagerName=${searchForm?.projectManagerName},
-                                           wbsNo=${searchForm?.wbsNo},
-                                           wbsName=${searchForm?.wbsName},
-                                           engineerName=${searchForm?.engineerName},
-                                           contractDateFrom=${searchForm?.contractDateFrom},
-                                           contractDateTo=${searchForm?.contractDateTo}
-                                       )}"
+                                    <a class="page-link"
+                                       th:with="nextPage=${currentPage + 1},
+                                                searchUrl=${searchType == 'advanced' ? '/search/advanced' : '/search'},
+                                                params=${searchType == 'advanced' ? {
+                                                    'fields[]': advancedForm.fields,
+                                                    'values[]': advancedForm.values,
+                                                    'comparisons[]': advancedForm.comparisons,
+                                                    'operators[]': advancedForm.operators
+                                                } : {
+                                                    'projectName': searchForm.projectName,
+                                                    'salesUserName': searchForm.salesUserName,
+                                                    'projectManagerName': searchForm.projectManagerName,
+                                                    'wbsNo': searchForm.wbsNo,
+                                                    'wbsName': searchForm.wbsName,
+                                                    'engineerName': searchForm.engineerName,
+                                                    'contractDateFrom': searchForm.contractDateFrom,
+                                                    'contractDateTo': searchForm.contractDateTo
+                                                }}"
+                                       th:href="@{${searchUrl}(page=${nextPage}, ${params})}"
                                        aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
