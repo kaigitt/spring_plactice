@@ -58,24 +58,84 @@
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <div>
                             <span th:text="'全 ' + ${totalElements} + ' 件中 '"></span>
-                            <!-- <span th:text="${projects.size()} + ' 件表示'"></span> -->
                         </div>
-                        <nav th:if="${totalPages > 1}" aria-label="Page navigation">
+                        <nav th:if="${totalPages > 1}" aria-label="Page navigation"
+                             th:with="isAdvanced=${searchForm instanceof T(com.example.demo.dto.AdvancedSearchForm)},
+                                     searchUrl=${isAdvanced ? '/search/advanced' : '/search'},
+                                     advancedForm=${isAdvanced ? searchForm : null}">
                             <ul class="pagination mb-0">
                                 <!-- 前へボタン -->
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                    <a class="page-link" th:href="@{/search(page=${currentPage - 1})}" aria-label="Previous">
+                                    <a class="page-link"
+                                       th:with="prevPage=${currentPage - 1}"
+                                       th:href="${isAdvanced} ? @{${searchUrl}(
+                                           page=${prevPage},
+                                           'fields[]'=${advancedForm.fields},
+                                           'values[]'=${advancedForm.values},
+                                           'comparisons[]'=${advancedForm.comparisons},
+                                           'operators[]'=${advancedForm.operators}
+                                       )} : @{${searchUrl}(
+                                           page=${prevPage},
+                                           projectName=${searchForm?.projectName},
+                                           salesUserName=${searchForm?.salesUserName},
+                                           projectManagerName=${searchForm?.projectManagerName},
+                                           wbsNo=${searchForm?.wbsNo},
+                                           wbsName=${searchForm?.wbsName},
+                                           engineerName=${searchForm?.engineerName},
+                                           contractDateFrom=${searchForm?.contractDateFrom},
+                                           contractDateTo=${searchForm?.contractDateTo}
+                                       )}"
+                                       aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
                                 <!-- ページ番号 -->
-                                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                <li class="page-item"
+                                    th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                                     th:classappend="${currentPage == i} ? 'active'">
-                                    <a class="page-link" th:href="@{/search(page=${i})}" th:text="${i + 1}"></a>
+                                    <a class="page-link"
+                                       th:href="${isAdvanced} ? @{${searchUrl}(
+                                           page=${i},
+                                           'fields[]'=${advancedForm.fields},
+                                           'values[]'=${advancedForm.values},
+                                           'comparisons[]'=${advancedForm.comparisons},
+                                           'operators[]'=${advancedForm.operators}
+                                       )} : @{${searchUrl}(
+                                           page=${i},
+                                           projectName=${searchForm?.projectName},
+                                           salesUserName=${searchForm?.salesUserName},
+                                           projectManagerName=${searchForm?.projectManagerName},
+                                           wbsNo=${searchForm?.wbsNo},
+                                           wbsName=${searchForm?.wbsName},
+                                           engineerName=${searchForm?.engineerName},
+                                           contractDateFrom=${searchForm?.contractDateFrom},
+                                           contractDateTo=${searchForm?.contractDateTo}
+                                       )}"
+                                       th:text="${i + 1}">
+                                    </a>
                                 </li>
                                 <!-- 次へボタン -->
                                 <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                                    <a class="page-link" th:href="@{/search(page=${currentPage + 1})}" aria-label="Next">
+                                    <a class="page-link" 
+                                       th:with="nextPage=${currentPage + 1}"
+                                       th:href="${isAdvanced} ? @{${searchUrl}(
+                                           page=${nextPage},
+                                           'fields[]'=${advancedForm.fields},
+                                           'values[]'=${advancedForm.values},
+                                           'comparisons[]'=${advancedForm.comparisons},
+                                           'operators[]'=${advancedForm.operators}
+                                       )} : @{${searchUrl}(
+                                           page=${nextPage},
+                                           projectName=${searchForm?.projectName},
+                                           salesUserName=${searchForm?.salesUserName},
+                                           projectManagerName=${searchForm?.projectManagerName},
+                                           wbsNo=${searchForm?.wbsNo},
+                                           wbsName=${searchForm?.wbsName},
+                                           engineerName=${searchForm?.engineerName},
+                                           contractDateFrom=${searchForm?.contractDateFrom},
+                                           contractDateTo=${searchForm?.contractDateTo}
+                                       )}"
+                                       aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>

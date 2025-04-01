@@ -4,7 +4,21 @@
     <meta charset="UTF-8">
     <title>プロジェクト管理システム</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* Select2の文字サイズ設定 */
+        .select2-container--bootstrap-5 .select2-selection {
+            font-size: 14px;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-results__option {
+            font-size: 14px;
+        }
+        .select2-container--bootstrap-5 .select2-search__field {
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -13,43 +27,19 @@
         <!-- 簡易検索 -->
         <section class="mb-5">
             <h2 class="search-title mt-4 mb-4">簡易検索</h2>
-            <form th:action="@{/search}" method="get" th:object="${searchForm}" class="mb-4" target="_blank">
+            <form id="simpleSearchForm" th:action="@{/search}" method="get" th:object="${searchForm}" class="mb-4">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="projectName" class="form-label">プロジェクト名</label>
-                        <input type="text" class="form-control" id="projectName" th:field="*{projectName}">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" th:field="*{projectName}" placeholder="プロジェクト名">
                     </div>
-                    <div class="col-md-4">
-                        <label for="salesUserName" class="form-label">営業担当者</label>
-                        <input type="text" class="form-control" id="salesUserName" th:field="*{salesUserName}">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" th:field="*{salesUserName}" placeholder="営業担当者">
                     </div>
-                    <div class="col-md-4">
-                        <label for="projectManagerName" class="form-label">プロジェクトマネージャー</label>
-                        <input type="text" class="form-control" id="projectManagerName" th:field="*{projectManagerName}">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" th:field="*{projectManagerName}" placeholder="プロジェクトマネージャー">
                     </div>
-                    <div class="col-md-4">
-                        <label for="wbsNo" class="form-label">WBS番号</label>
-                        <input type="text" class="form-control" id="wbsNo" th:field="*{wbsNo}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="wbsName" class="form-label">WBS名</label>
-                        <input type="text" class="form-control" id="wbsName" th:field="*{wbsName}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="engineerName" class="form-label">エンジニア名</label>
-                        <input type="text" class="form-control" id="engineerName" th:field="*{engineerName}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="contractDateFrom" class="form-label">契約年月日（開始）</label>
-                        <input type="date" class="form-control" id="contractDateFrom" th:field="*{contractDateFrom}">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="contractDateTo" class="form-label">契約年月日（終了）</label>
-                        <input type="date" class="form-control" id="contractDateTo" th:field="*{contractDateTo}">
-                    </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary">検索</button>
-                        <button type="reset" class="btn btn-secondary">クリア</button>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">検索</button>
                     </div>
                 </div>
             </form>
@@ -65,24 +55,24 @@
                     <!-- CSVファイルインポート部分 -->
                     <div class="mb-4">
                         <h5>検索条件CSVインポート</h5>
-                        <div class="input-group">
-                            <input type="file" class="form-control" id="csvFileInput" accept=".csv" 
-                                aria-describedby="csvFileHelp">
-                            <button class="btn btn-outline-secondary" type="button" id="importCsvButton">
-                                インポート
-                            </button>
+                        <div>
+                            <label class="btn btn-outline-secondary" for="csvFileInput">
+                                CSVファイルを選択してインポート
+                            </label>
+                            <input type="file" class="d-none" id="csvFileInput" accept=".csv">
                         </div>
                         <div id="csvFileHelp" class="form-text">
                             CSVファイル形式: 検索項目,検索値,比較演算子,論理演算子
                         </div>
                     </div>
 
-                    <form th:action="@{/search/advanced}" method="get" id="advancedSearchForm" class="mb-4" target="_blank">
+                    <form id="advancedSearchForm" th:action="@{/search/advanced}" method="get" class="mb-4">
                         <div id="searchConditions">
                             <!-- 検索条件テンプレート -->
                             <div class="search-condition row g-3 mb-3">
                                 <div class="col-md-3">
                                     <select class="form-select search-field" name="fields[]">
+                                        <option value="">-</option>
                                         <option value="project_name">プロジェクト名</option>
                                         <option value="sales_user_name">営業担当者</option>
                                         <option value="project_manager_name">プロジェクトマネージャー</option>
@@ -132,340 +122,546 @@
         </section>
     </div>
 
+    <!-- 検索結果件数確認モーダル -->
+    <div class="modal fade" id="searchCountModal" tabindex="-1" aria-labelledby="searchCountModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="searchCountModalLabel">検索結果確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="searchCountModalBody">
+                    <!-- ここに検索件数が動的に表示されます -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">検索条件を修正</button>
+                    <button type="button" class="btn btn-primary" id="proceedSearchBtn">検索結果を表示</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchConditions = document.getElementById('searchConditions');
-            const addConditionBtn = document.getElementById('addCondition');
-
-            // 条件追加ボタンのクリックイベント
-            addConditionBtn.addEventListener('click', function() {
-                const template = searchConditions.querySelector('.search-condition').cloneNode(true);
-                template.querySelector('.search-value').value = '';
-                // 他のセレクトボックスも初期値に戻す
-                template.querySelector('.search-field').selectedIndex = 0;
-                template.querySelector('.search-comparison').selectedIndex = 0;
-                template.querySelector('.search-operator').selectedIndex = 0;
-                searchConditions.appendChild(template);
-
-                // 新しい削除ボタンにイベントリスナーを追加
-                template.querySelector('.remove-condition').addEventListener('click', function() {
-                    if (searchConditions.children.length > 1) {
-                        this.closest('.search-condition').remove();
-                    }
-                });
-            });
-
-            // 初期の削除ボタンにイベントリスナーを追加
-            document.querySelector('.remove-condition').addEventListener('click', function() {
-                if (searchConditions.children.length > 1) {
-                    this.closest('.search-condition').remove();
-                }
-            });
-
-            // 契約年月日が選択された場合、比較演算子を変更
-            document.addEventListener('change', function(e) {
-                if (e.target.classList.contains('search-field')) {
-                    const comparisonSelect = e.target.closest('.search-condition').querySelector('.search-comparison');
-                    if (e.target.value === 'contract_date') {
-                        // 日付用の比較演算子
-                        comparisonSelect.innerHTML = `
-                            <option value="equals">と一致する</option>
-                            <option value="greater">より後</option>
-                            <option value="less">より前</option>
-                            <option value="greaterOrEqual">以降</option>
-                            <option value="lessOrEqual">以前</option>
-                        `;
-                    } else {
-                        // 文字列用の比較演算子
-                        comparisonSelect.innerHTML = `
-                            <option value="contains">を含む</option>
-                            <option value="startsWith">から始まる</option>
-                            <option value="endsWith">で終わる</option>
-                            <option value="equals">と一致する</option>
-                        `;
-                    }
-                }
-            });
-
-            // ファイル選択の処理
-            const csvFileInput = document.getElementById('csvFileInput');
-            const importCsvButton = document.getElementById('importCsvButton');
-            const errorDiv = document.getElementById('errorMessage');
-
-            importCsvButton.addEventListener('click', async () => {
-                const file = csvFileInput.files[0];
-                if (!file) {
-                    errorDiv.textContent = 'ファイルを選択してください。';
-                    errorDiv.style.display = 'block';
-                    setTimeout(() => {
-                        errorDiv.style.display = 'none';
-                    }, 5000);
-                    return;
-                }
-
-                if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-                    errorDiv.textContent = 'CSVファイルを選択してください。';
-                    errorDiv.style.display = 'block';
-                    setTimeout(() => {
-                        errorDiv.style.display = 'none';
-                    }, 5000);
-                    return;
-                }
-
-                try {
-                    const text = await file.text();
-                    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-                    
-                    // ヘッダー行の検証
-                    const expectedHeader = '検索項目,検索値,比較演算子,論理演算子';
-                    const header = lines[0];
-                    
-                    if (header !== expectedHeader) {
-                        throw new Error('CSVファイルのヘッダーが正しくありません。\n期待されるヘッダー: ' + expectedHeader);
-                    }
-
-                    // データ行の解析
-                    const data = lines.slice(1).map(line => {
-                        const [field, value, comparison, operator] = line.split(',').map(item => item.trim());
-                        return { field, value, comparison, operator };
-                    });
-
-                    // データの検証
-                    const validFields = [
-                        'プロジェクト名', '営業担当者', 'プロジェクトマネージャー',
-                        'WBS番号', 'WBS名', 'エンジニア名', '契約年月日'
-                    ];
-                    const validComparisons = [
-                        'を含む', 'から始まる', 'で終わる', 'と一致する',
-                        'より後', 'より前', '以降', '以前'
-                    ];
-                    const validOperators = ['AND', 'OR', ''];
-
-                    for (const row of data) {
-                        if (!validFields.includes(row.field)) {
-                            throw new Error(`無効な検索項目です: ${row.field}`);
-                        }
-                        if (!row.value) {
-                            throw new Error('検索値が空です');
-                        }
-                        if (!validComparisons.includes(row.comparison)) {
-                            throw new Error(`無効な比較演算子です: ${row.comparison}`);
-                        }
-                        if (!validOperators.includes(row.operator)) {
-                            throw new Error(`無効な論理演算子です: ${row.operator}`);
-                        }
-                    }
-
-                    // 既存の検索条件をクリア（最初の1つは残す）
-                    const searchConditions = document.getElementById('searchConditions');
-                    while (searchConditions.children.length > 1) {
-                        searchConditions.removeChild(searchConditions.lastChild);
-                    }
-                    const firstCondition = searchConditions.firstElementChild;
-                    
-                    // 検索項目の日本語とvalue値のマッピング
-                    const fieldMapping = {
-                        'プロジェクト名': 'project_name',
-                        '営業担当者': 'sales_user_name',
-                        'プロジェクトマネージャー': 'project_manager_name',
-                        'WBS番号': 'wbs_no',
-                        'WBS名': 'wbs_name',
-                        'エンジニア名': 'engineer_name',
-                        '契約年月日': 'contract_date'
-                    };
-
-                    // 比較演算子の日本語とvalue値のマッピング
-                    const comparisonMapping = {
-                        'を含む': 'contains',
-                        'から始まる': 'startsWith',
-                        'で終わる': 'endsWith',
-                        'と一致する': 'equals',
-                        'より後': 'greater',
-                        'より前': 'less',
-                        '以降': 'greaterOrEqual',
-                        '以前': 'lessOrEqual'
-                    };
-
-                    // 最初の行を設定
-                    if (data.length > 0) {
-                        const firstRow = data[0];
-                        const fieldSelect = firstCondition.querySelector('.search-field');
-                        const valueInput = firstCondition.querySelector('.search-value');
-                        const comparisonSelect = firstCondition.querySelector('.search-comparison');
-                        const operatorSelect = firstCondition.querySelector('.search-operator');
-
-                        fieldSelect.value = fieldMapping[firstRow.field];
-                        valueInput.value = firstRow.value;
-                        
-                        // 契約年月日の場合は比較演算子を更新
-                        if (firstRow.field === '契約年月日') {
-                            comparisonSelect.innerHTML = `
-                                <option value="equals">と一致する</option>
-                                <option value="greater">より後</option>
-                                <option value="less">より前</option>
-                                <option value="greaterOrEqual">以降</option>
-                                <option value="lessOrEqual">以前</option>
-                            `;
-                        }
-                        
-                        comparisonSelect.value = comparisonMapping[firstRow.comparison];
-                        operatorSelect.value = firstRow.operator;
-                    }
-
-                    // 2行目以降を追加
-                    for (let i = 1; i < data.length; i++) {
-                        const row = data[i];
-                        const newCondition = firstCondition.cloneNode(true);
-                        
-                        const fieldSelect = newCondition.querySelector('.search-field');
-                        const valueInput = newCondition.querySelector('.search-value');
-                        const comparisonSelect = newCondition.querySelector('.search-comparison');
-                        const operatorSelect = newCondition.querySelector('.search-operator');
-
-                        fieldSelect.value = fieldMapping[row.field];
-                        valueInput.value = row.value;
-                        
-                        // 契約年月日の場合は比較演算子を更新
-                        if (row.field === '契約年月日') {
-                            comparisonSelect.innerHTML = `
-                                <option value="equals">と一致する</option>
-                                <option value="greater">より後</option>
-                                <option value="less">より前</option>
-                                <option value="greaterOrEqual">以降</option>
-                                <option value="lessOrEqual">以前</option>
-                            `;
-                        }
-                        
-                        comparisonSelect.value = comparisonMapping[row.comparison];
-                        operatorSelect.value = row.operator;
-
-                        // 削除ボタンのイベントリスナーを追加
-                        newCondition.querySelector('.remove-condition').addEventListener('click', function() {
-                            if (searchConditions.children.length > 1) {
-                                this.closest('.search-condition').remove();
-                            }
-                        });
-
-                        searchConditions.appendChild(newCondition);
-                    }
-
-                    // 成功メッセージを表示
-                    errorDiv.className = 'alert alert-success mt-3';
-                    errorDiv.textContent = 'CSVファイルを正常にインポートしました。';
-                    errorDiv.style.display = 'block';
-                    setTimeout(() => {
-                        errorDiv.style.display = 'none';
-                        errorDiv.className = 'alert alert-danger mt-3';
-                    }, 3000);
-
-                } catch (error) {
-                    errorDiv.textContent = `CSVファイルの読み込みエラー: ${error.message}`;
-                    errorDiv.style.display = 'block';
-                    setTimeout(() => {
-                        errorDiv.style.display = 'none';
-                    }, 5000);
-                    return null;
-                }
-            });
-
-            // ファイル選択時のフィードバック
-            csvFileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    console.log('File selected:', file.name);
-                }
-            });
-        });
-
-        // CSV出力機能
-        async function downloadCSV() {
-            const form = document.getElementById('advancedSearchForm');
-            const searchValues = form.querySelectorAll('.search-value');
-            const errorDiv = document.getElementById('errorMessage');
+        // アプリケーション全体で使用する定数
+        const CONSTANTS = {
+            // メッセージ表示時間（ミリ秒）
+            DISPLAY_DURATION: {
+                ERROR: 5000,
+                SUCCESS: 3000
+            },
             
-            // 検索値の入力チェック
-            let hasEmptyValue = false;
-            searchValues.forEach((input) => {
-                if (!input.value.trim()) {
-                    hasEmptyValue = true;
-                }
-            });
+            // 検索項目の定義
+            SEARCH_FIELDS: {
+                PROJECT_NAME: 'project_name',
+                SALES_USER: 'sales_user_name',
+                PROJECT_MANAGER: 'project_manager_name',
+                WBS_NO: 'wbs_no',
+                WBS_NAME: 'wbs_name',
+                ENGINEER: 'engineer_name',
+                CONTRACT_DATE: 'contract_date'
+            },
 
-            if (hasEmptyValue) {
-                errorDiv.textContent = '検索条件の入力値が未入力の項目があります。全ての検索条件に値を入力してください。';
-                errorDiv.style.display = 'block';
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                }, 5000);
-                return;
+            // 検索条件の定義
+            SEARCH_TYPES: {
+                SIMPLE: 'simple',
+                ADVANCED: 'advanced'
+            },
+
+            // 比較演算子の定義
+            COMPARISON_OPERATORS: {
+                TEXT: {
+                    CONTAINS: 'contains',
+                    STARTS_WITH: 'startsWith',
+                    ENDS_WITH: 'endsWith',
+                    EQUALS: 'equals'
+                },
+                DATE: {
+                    EQUALS: 'equals',
+                    GREATER: 'greater',
+                    LESS: 'less',
+                    GREATER_OR_EQUAL: 'greaterOrEqual',
+                    LESS_OR_EQUAL: 'lessOrEqual'
+                }
+            },
+
+            // メッセージの種類
+            MESSAGE_TYPE: {
+                ERROR: 'error',
+                SUCCESS: 'success'
+            },
+
+            // CSVファイル関連
+            CSV: {
+                EXPECTED_HEADER: '検索項目,検索値,比較演算子,論理演算子',
+                FILE_EXTENSION: '.csv',
+                MIME_TYPE: 'text/csv'
+            }
+        };
+
+        // メッセージ管理クラス
+        class MessageManager {
+            constructor(elementId) {
+                this.messageElement = document.getElementById(elementId);
             }
 
-            try {
-                // フォームデータを配列形式で収集
-                const fields = Array.from(form.querySelectorAll('.search-field')).map(el => el.value);
-                const values = Array.from(form.querySelectorAll('.search-value')).map(el => el.value);
-                const comparisons = Array.from(form.querySelectorAll('.search-comparison')).map(el => el.value);
-                const operators = Array.from(form.querySelectorAll('.search-operator')).map(el => el.value);
+            /**
+             * メッセージを表示する
+             * @param {string} message - 表示するメッセージ
+             * @param {string} type - メッセージの種類（error/success）
+             */
+            show(message, type) {
+                this.messageElement.textContent = message;
+                this.messageElement.className = this._getAlertClass(type);
+                this.messageElement.style.display = 'block';
 
-                // URLSearchParamsを使用して配列パラメータを正しく構築
-                const params = new URLSearchParams();
-                fields.forEach((field, i) => {
-                    params.append('fields', field);
-                    params.append('values', values[i]);
-                    params.append('comparisons', comparisons[i]);
-                    if (i < operators.length) {
-                        params.append('operators', operators[i]);
+                const duration = this._getDisplayDuration(type);
+                this._scheduleHide(duration, type);
+            }
+
+            /**
+             * メッセージ種類に応じたCSSクラスを取得
+             */
+            _getAlertClass(type) {
+                const baseClass = 'alert mt-3';
+                return type === CONSTANTS.MESSAGE_TYPE.SUCCESS
+                    ? `${baseClass} alert-success`
+                    : `${baseClass} alert-danger`;
+            }
+
+            /**
+             * メッセージ種類に応じた表示時間を取得
+             */
+            _getDisplayDuration(type) {
+                return type === CONSTANTS.MESSAGE_TYPE.SUCCESS
+                    ? CONSTANTS.DISPLAY_DURATION.SUCCESS
+                    : CONSTANTS.DISPLAY_DURATION.ERROR;
+            }
+
+            /**
+             * メッセージを非表示にするタイマーを設定
+             */
+            _scheduleHide(duration, type) {
+                setTimeout(() => {
+                    this.messageElement.style.display = 'none';
+                    if (type === CONSTANTS.MESSAGE_TYPE.SUCCESS) {
+                        this.messageElement.className = 'alert alert-danger mt-3';
+                    }
+                }, duration);
+            }
+        }
+
+        // 検索条件管理クラス
+        class SearchConditionManager {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.template = this.container.querySelector('.search-condition');
+            }
+
+            /**
+             * 新しい検索条件行を追加
+             */
+            addCondition() {
+                const newCondition = this.template.cloneNode(true);
+                this._resetCondition(newCondition);
+                this.container.appendChild(newCondition);
+                this._attachRemoveHandler(newCondition.querySelector('.remove-condition'));
+                this._setupSelect2(newCondition);
+            }
+
+            /**
+             * 検索条件行を初期化
+             */
+            _resetCondition(conditionElement) {
+                const elements = {
+                    value: conditionElement.querySelector('.search-value'),
+                    field: conditionElement.querySelector('.search-field'),
+                    comparison: conditionElement.querySelector('.search-comparison'),
+                    operator: conditionElement.querySelector('.search-operator')
+                };
+
+                Object.values(elements).forEach(element => {
+                    if (element.tagName === 'INPUT') {
+                        element.value = '';
+                    } else if (element.tagName === 'SELECT') {
+                        element.selectedIndex = 0;
                     }
                 });
+            }
 
-                // エラーメッセージをクリア
-                errorDiv.style.display = 'none';
-                errorDiv.textContent = '';
+            /**
+             * 削除ボタンのイベントハンドラを設定
+             */
+            _attachRemoveHandler(button) {
+                button.addEventListener('click', () => {
+                    const condition = button.closest('.search-condition');
+                    if (this.container.children.length > 1) {
+                        condition.remove();
+                    }
+                });
+            }
 
-                const response = await fetch(`/search/advanced/csv?${params.toString()}`);
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(text);
+            /**
+             * 検索フィールドの変更時の処理
+             */
+            handleFieldChange(fieldElement) {
+                const comparisonSelect = fieldElement.closest('.search-condition')
+                    .querySelector('.search-comparison');
+                
+                const options = this._getComparisonOptions(fieldElement.value);
+                comparisonSelect.innerHTML = options;
+            }
+
+            /**
+             * フィールドタイプに応じた比較演算子オプションを取得
+             */
+            _getComparisonOptions(fieldValue) {
+                if (fieldValue === CONSTANTS.SEARCH_FIELDS.CONTRACT_DATE) {
+                    return this._getDateComparisonOptions();
+                }
+                return this._getTextComparisonOptions();
+            }
+
+            /**
+             * 日付用の比較演算子オプションを生成
+             */
+            _getDateComparisonOptions() {
+                const options = [
+                    { value: CONSTANTS.COMPARISON_OPERATORS.DATE.EQUALS, text: 'と一致する' },
+                    { value: CONSTANTS.COMPARISON_OPERATORS.DATE.GREATER, text: 'より後' },
+                    { value: CONSTANTS.COMPARISON_OPERATORS.DATE.LESS, text: 'より前' },
+                    { value: CONSTANTS.COMPARISON_OPERATORS.DATE.GREATER_OR_EQUAL, text: '以降' },
+                    { value: CONSTANTS.COMPARISON_OPERATORS.DATE.LESS_OR_EQUAL, text: '以前' }
+                ];
+                return this._createOptionsHTML(options);
+            }
+
+            /**
+             * テキスト用の比較演算子オプションを生成
+             */
+            _getTextComparisonOptions() {
+                const options = [
+                    { value: CONSTANTS.COMPARISON_OPERATORS.TEXT.CONTAINS, text: 'を含む' },
+                    { value: CONSTANTS.COMPARISON_OPERATORS.TEXT.STARTS_WITH, text: 'から始まる' },
+                    { value: CONSTANTS.COMPARISON_OPERATORS.TEXT.ENDS_WITH, text: 'で終わる' },
+                    { value: CONSTANTS.COMPARISON_OPERATORS.TEXT.EQUALS, text: 'と一致する' }
+                ];
+                return this._createOptionsHTML(options);
+            }
+
+            /**
+             * セレクトボックスのオプションHTMLを生成
+             */
+            _createOptionsHTML(options) {
+                return options.map(option => 
+                    `<option value="${option.value}">${option.text}</option>`
+                ).join('');
+            }
+
+            /**
+             * Select2の初期化
+             */
+            _setupSelect2(conditionElement) {
+                const fieldSelect = $(conditionElement).find('.search-field');
+                fieldSelect.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: '検索項目を選択',
+                    allowClear: false,
+                    dropdownParent: $(conditionElement)
+                });
+            }
+        }
+
+        // 検索処理管理クラス
+        class SearchManager {
+            constructor(messageManager) {
+                this.messageManager = messageManager;
+                this.currentForm = null;
+                this.modal = new bootstrap.Modal(document.getElementById('searchCountModal'));
+            }
+
+            /**
+             * 検索フォームの送信処理
+             */
+            async handleSubmit(event, type) {
+                event.preventDefault();
+                const form = event.target;
+                this.currentForm = form;
+
+                if (!this._validateForm(form, type)) {
+                    return;
                 }
 
-                const blob = await response.blob();
-                // 現在の日付を取得してデフォルトのファイル名を設定
-                const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-                const defaultFilename = `searchProject_${today}.csv`;
+                try {
+                    const searchCount = await this._fetchSearchCount(form, type);
+                    this._displaySearchCount(searchCount);
+                } catch (error) {
+                    this.messageManager.show(error.message, CONSTANTS.MESSAGE_TYPE.ERROR);
+                }
+            }
+
+            /**
+             * フォームのバリデーション
+             */
+            _validateForm(form, type) {
+                if (type !== CONSTANTS.SEARCH_TYPES.ADVANCED) {
+                    return true;
+                }
+
+                const fields = Array.from(form.querySelectorAll('.search-field')).map(f => f.value);
+                const values = Array.from(form.querySelectorAll('.search-value')).map(v => v.value);
+
+                // 検索項目が空かどうかをチェック
+                for (let i = 0; i < fields.length; i++) {
+                    if (!fields[i]) {
+                        this.messageManager.show('検索項目を選択してください', CONSTANTS.MESSAGE_TYPE.ERROR);
+                        return false;
+                    }
+                }
+
+                // 検索値が空かどうかをチェック
+                for (let i = 0; i < values.length; i++) {
+                    if (!values[i].trim()) {
+                        this.messageManager.show('検索値を入力してください', CONSTANTS.MESSAGE_TYPE.ERROR);
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            /**
+             * 検索件数を取得
+             */
+            async _fetchSearchCount(form, type) {
+                const url = this._getSearchCountUrl(type);
+                const params = new URLSearchParams(new FormData(form));
+                
+                const response = await fetch(`${url}?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error('検索処理でエラーが発生しました');
+                }
+                
+                return await response.text();
+            }
+
+            /**
+             * 検索タイプに応じたURLを取得
+             */
+            _getSearchCountUrl(type) {
+                return type === CONSTANTS.SEARCH_TYPES.SIMPLE
+                    ? '/search/count'
+                    : '/search/advanced/count';
+            }
+
+            /**
+             * 検索件数をモーダルに表示
+             */
+            _displaySearchCount(html) {
+                document.getElementById('searchCountModalBody').innerHTML = html;
+                this.modal.show();
+            }
+
+            /**
+             * 検索を実行
+             */
+            executeSearch() {
+                if (!this.currentForm) {
+                    return;
+                }
+
+                this.currentForm.target = '_blank';
+                this.currentForm.submit();
+                this.modal.hide();
+            }
+        }
+
+        // CSV処理管理クラス
+        class CSVManager {
+            constructor(messageManager) {
+                this.messageManager = messageManager;
+            }
+
+            /**
+             * CSVダウンロード処理
+             */
+            async downloadCSV() {
+                const form = document.getElementById('advancedSearchForm');
+                
+                if (!this._validateForm(form)) {
+                    return;
+                }
 
                 try {
-                    // ファイル保存ダイアログを表示
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: defaultFilename,
-                        types: [{
-                            description: 'CSV File',
-                            accept: {
-                                'text/csv': ['.csv'],
-                            },
-                        }],
-                    });
+                    const csvData = await this._fetchCSVData(form);
+                    await this._saveFile(csvData);
+                } catch (error) {
+                    this._handleError(error);
+                }
+            }
 
-                    // ファイルを書き込む
+            /**
+             * フォームのバリデーション
+             */
+            _validateForm(form) {
+                const searchValues = form.querySelectorAll('.search-value');
+                const hasEmptyValues = Array.from(searchValues)
+                    .some(input => !input.value.trim());
+
+                if (hasEmptyValues) {
+                    this.messageManager.show(
+                        '検索条件の入力値が未入力の項目があります。全ての検索条件に値を入力してください。',
+                        CONSTANTS.MESSAGE_TYPE.ERROR
+                    );
+                    return false;
+                }
+                return true;
+            }
+
+            /**
+             * CSVデータを取得
+             */
+            async _fetchCSVData(form) {
+                const params = this._buildRequestParams(form);
+                const response = await fetch(`/search/advanced/csv?${params.toString()}`);
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                return await response.blob();
+            }
+
+            /**
+             * リクエストパラメータを構築
+             */
+            _buildRequestParams(form) {
+                const params = new URLSearchParams();
+                const paramTypes = ['fields', 'values', 'comparisons', 'operators'];
+
+                paramTypes.forEach(param => {
+                    const elements = form.querySelectorAll(`.search-${param.slice(0, -1)}`);
+                    Array.from(elements).forEach((el, i) => {
+                        if (param !== 'operators' || i < elements.length - 1) {
+                            params.append(param, el.value);
+                        }
+                    });
+                });
+
+                return params;
+            }
+
+            /**
+             * ファイルを保存
+             */
+            async _saveFile(blob) {
+                const filename = this._generateFilename();
+                const options = {
+                    suggestedName: filename,
+                    types: [{
+                        description: 'CSV File',
+                        accept: {
+                            [CONSTANTS.CSV.MIME_TYPE]: [CONSTANTS.CSV.FILE_EXTENSION]
+                        }
+                    }]
+                };
+
+                try {
+                    const handle = await window.showSaveFilePicker(options);
                     const writable = await handle.createWritable();
                     await writable.write(blob);
                     await writable.close();
-
                 } catch (err) {
                     if (err.name !== 'AbortError') {
                         throw err;
                     }
-                    // ユーザーがキャンセルした場合は何もしない
                 }
-            } catch (error) {
+            }
+
+            /**
+             * ファイル名を生成
+             */
+            _generateFilename() {
+                const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                return `searchProject_${today}${CONSTANTS.CSV.FILE_EXTENSION}`;
+            }
+
+            /**
+             * エラー処理
+             */
+            _handleError(error) {
                 console.error('CSVのダウンロードに失敗しました:', error);
-                errorDiv.textContent = `CSVのダウンロードに失敗しました: ${error.message}`;
-                errorDiv.style.display = 'block';
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                }, 5000);
+                this.messageManager.show(
+                    `CSVのダウンロードに失敗しました: ${error.message}`,
+                    CONSTANTS.MESSAGE_TYPE.ERROR
+                );
             }
         }
+
+        // アプリケーションの初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 各マネージャーのインスタンス化
+            const messageManager = new MessageManager('errorMessage');
+            const searchConditionManager = new SearchConditionManager('searchConditions');
+            const searchManager = new SearchManager(messageManager);
+            const csvManager = new CSVManager(messageManager);
+
+            // グローバル関数の設定
+            window.downloadCSV = () => csvManager.downloadCSV();
+
+            // 初期の検索条件にSelect2を設定
+            document.querySelectorAll('.search-condition').forEach(condition => {
+                searchConditionManager._setupSelect2(condition);
+            });
+
+            // イベントリスナーの設定
+            function setupEventListeners() {
+                // 検索条件追加ボタン
+                document.getElementById('addCondition').addEventListener('click', () => {
+                    searchConditionManager.addCondition();
+                });
+
+                // 検索フィールド変更
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('search-field')) {
+                        searchConditionManager.handleFieldChange(e.target);
+                    }
+                });
+
+                // 検索実行ボタン
+                document.getElementById('proceedSearchBtn').addEventListener('click', () => {
+                    searchManager.executeSearch();
+                });
+
+                // 検索フォーム
+                setupSearchForms();
+            }
+
+            /**
+             * 検索フォームの設定
+             */
+            function setupSearchForms() {
+                const formConfigs = [
+                    { id: 'simpleSearchForm', type: CONSTANTS.SEARCH_TYPES.SIMPLE },
+                    { id: 'advancedSearchForm', type: CONSTANTS.SEARCH_TYPES.ADVANCED }
+                ];
+
+                formConfigs.forEach(config => {
+                    const form = document.getElementById(config.id);
+                    if (form) {
+                        form.addEventListener('submit', (e) => 
+                            searchManager.handleSubmit(e, config.type)
+                        );
+                    }
+                });
+            }
+
+            // 初期化処理の実行
+            setupEventListeners();
+        });
     </script>
 </body>
 </html>

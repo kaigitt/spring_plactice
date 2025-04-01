@@ -4,7 +4,21 @@
     <meta charset="UTF-8">
     <title>プロジェクト管理システム</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* Select2の文字サイズ設定 */
+        .select2-container--bootstrap-5 .select2-selection {
+            font-size: 14px;
+        }
+        .select2-container--bootstrap-5 .select2-dropdown .select2-results__option {
+            font-size: 14px;
+        }
+        .select2-container--bootstrap-5 .select2-search__field {
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -128,6 +142,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         // アプリケーション全体で使用する定数
         const CONSTANTS = {
@@ -252,6 +268,7 @@
                 this._resetCondition(newCondition);
                 this.container.appendChild(newCondition);
                 this._attachRemoveHandler(newCondition.querySelector('.remove-condition'));
+                this._setupSelect2(newCondition);
             }
 
             /**
@@ -341,6 +358,20 @@
                 return options.map(option => 
                     `<option value="${option.value}">${option.text}</option>`
                 ).join('');
+            }
+
+            /**
+             * Select2の初期化
+             */
+            _setupSelect2(conditionElement) {
+                const fieldSelect = $(conditionElement).find('.search-field');
+                fieldSelect.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: '検索項目を選択',
+                    allowClear: false,
+                    dropdownParent: $(conditionElement)
+                });
             }
         }
 
@@ -580,6 +611,11 @@
 
             // グローバル関数の設定
             window.downloadCSV = () => csvManager.downloadCSV();
+
+            // 初期の検索条件にSelect2を設定
+            document.querySelectorAll('.search-condition').forEach(condition => {
+                searchConditionManager._setupSelect2(condition);
+            });
 
             // イベントリスナーの設定
             function setupEventListeners() {
