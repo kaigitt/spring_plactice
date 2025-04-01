@@ -27,6 +27,10 @@ public class SearchForm {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate contractDateTo;
 
+    // ソート用のフィールドを追加
+    private String sort;
+    private String sortDirection;
+
     public void setProjectName(String projectName) {
         this.projectName = StringUtils.hasText(projectName) ? projectName : null;
     }

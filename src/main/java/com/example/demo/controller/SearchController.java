@@ -36,44 +36,23 @@ public class SearchController {
     }
 
     @GetMapping("/search")
-    public String search(
-            @RequestParam(required = false) String projectName,
-            @RequestParam(required = false) String salesUserName,
-            @RequestParam(required = false) String projectManagerName,
-            @RequestParam(required = false) String wbsNo,
-            @RequestParam(required = false) String wbsName,
-            @RequestParam(required = false) String engineerName,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate contractDateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate contractDateTo,
-            @RequestParam(defaultValue = "0") int page,
-            Model model) {
-        try {
-            SearchForm form = new SearchForm();
-            form.setProjectName(projectName);
-            form.setSalesUserName(salesUserName);
-            form.setProjectManagerName(projectManagerName);
-            form.setWbsNo(wbsNo);
-            form.setWbsName(wbsName);
-            form.setEngineerName(engineerName);
-            form.setContractDateFrom(contractDateFrom);
-            form.setContractDateTo(contractDateTo);
-
-            Page<SearchResult> results = searchService.search(form, page);
-
-            model.addAttribute("projects", results.getContent());
-            model.addAttribute("currentPage", page);
-            model.addAttribute("totalPages", results.getTotalPages());
-            model.addAttribute("totalElements", results.getTotalElements());
-            model.addAttribute("searchForm", form);
-            model.addAttribute("searchType", SEARCH_TYPE_SIMPLE);
-
-            return "search-results";
-        } catch (Exception e) {
-            logger.error("検索処理でエラーが発生しました", e);
-            model.addAttribute("error", "検索処理でエラーが発生しました。");
-            model.addAttribute("searchForm", new SearchForm());
-            return "search-results";
-        }
+    public String search(@ModelAttribute SearchForm searchForm,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "projectId") String sort,
+                        @RequestParam(defaultValue = "asc") String direction,
+                        Model model) {
+        
+        Page<Project> projectPage = searchService.search(searchForm, page, sort, direction);
+        
+        model.addAttribute("projects", projectPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", projectPage.getTotalPages());
+        model.addAttribute("searchForm", searchForm);
+        model.addAttribute("searchType", "simple");
+        model.addAttribute("sort", sort);
+        model.addAttribute("direction", direction);
+        
+        return "search-results";
     }
 
     @ExceptionHandler(Exception.class)
@@ -105,17 +84,21 @@ public class SearchController {
     }
 
     @GetMapping("/search/advanced")
-    public String advancedSearch(@ModelAttribute AdvancedSearchForm form,
+    public String advancedSearch(@ModelAttribute AdvancedSearchForm searchForm,
                                @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "projectId") String sort,
+                               @RequestParam(defaultValue = "asc") String direction,
                                Model model) {
-        Page<SearchResult> searchResults = searchService.advancedSearch(form, page);
         
-        model.addAttribute("projects", searchResults.getContent());
+        Page<Project> projectPage = searchService.searchAdvanced(searchForm, page, sort, direction);
+        
+        model.addAttribute("projects", projectPage.getContent());
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", searchResults.getTotalPages());
-        model.addAttribute("totalElements", searchResults.getTotalElements());
-        model.addAttribute("searchForm", form);
-        model.addAttribute("searchType", SEARCH_TYPE_ADVANCED);
+        model.addAttribute("totalPages", projectPage.getTotalPages());
+        model.addAttribute("advancedForm", searchForm);
+        model.addAttribute("searchType", "advanced");
+        model.addAttribute("sort", sort);
+        model.addAttribute("direction", direction);
         
         return "search-results";
     }

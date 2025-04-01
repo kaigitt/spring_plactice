@@ -15,6 +15,28 @@
             height: 300px;
             overflow-y: auto;
         }
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .sortable:hover {
+            background-color: #f8f9fa;
+        }
+        .sortable i {
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+        th {
+            cursor: pointer;
+        }
+        th.asc::after {
+            content: "▲";
+            margin-left: 5px;
+        }
+        th.desc::after {
+            content: "▼";
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -26,7 +48,7 @@
                 <h3>プロジェクト一覧</h3>
                 <div class="list-container">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover" id="projectTable">
                             <thead class="table-light sticky-top">
                                 <tr>
                                     <th>プロジェクトID</th>
@@ -333,6 +355,84 @@
             document.getElementById('wbsProjectName').textContent = '-';
             document.getElementById('engineerTableBody').innerHTML = '';
         }
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('projectTable');
+        const headers = table.querySelectorAll('th.sortable');
+        let currentSort = {
+            column: null,
+            direction: 'asc'
+        };
+
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const column = header.dataset.sort;
+                const direction = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
+                
+                // ソートアイコンの更新
+                headers.forEach(h => {
+                    const icon = h.querySelector('i');
+                    if (h === header) {
+                        icon.className = `bi bi-arrow-${direction === 'asc' ? 'up' : 'down'}`;
+                    } else {
+                        icon.className = 'bi bi-arrow-down-up';
+                    }
+                });
+
+                // テーブルのソート
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    let aValue = a.dataset[column];
+                    let bValue = b.dataset[column];
+
+                    // 契約年月日の場合は日付として比較
+                    if (column === 'contractDate') {
+                        aValue = new Date(aValue);
+                        bValue = new Date(bValue);
+                    }
+
+                    // 数値の場合は数値として比較
+                    if (column === 'projectId') {
+                        aValue = parseInt(aValue);
+                        bValue = parseInt(bValue);
+                    }
+
+                    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                // ソートされた行をテーブルに再追加
+                rows.forEach(row => tbody.appendChild(row));
+
+                currentSort = { column, direction };
+            });
+        });
+    });
+    </script>
+    <script>
+    // ソート機能
+    // 画面上でソート方向のCSSを変更する処理
+    let ths = document.getElementsByTagName("th");
+    for (var i = 0; i < ths.length; i++) {
+        ths[i].onclick = event => {
+            let element = event.target;
+            if (element.classList.contains('asc')) {
+                element.classList.replace('asc', 'desc');
+            } else if (element.classList.contains('desc')) {
+                element.classList.replace('desc', 'asc');
+            } else {
+                element.classList.add('asc');
+            }
+
+            Array.from(element.parentNode.children)
+                .filter(e => e !== element)
+                .forEach(e => e.classList.remove('asc', 'desc'));
+        };
+    }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

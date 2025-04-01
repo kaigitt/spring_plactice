@@ -34,7 +34,21 @@
                 AND p.contract_date &lt;= #{contractDateTo}
             </if>
         </where>
-        ORDER BY p.project_id
+        <if test="sort != null and sort != ''">
+            ORDER BY
+            <choose>
+                <when test="sort == 'projectId'">p.project_id</when>
+                <when test="sort == 'projectName'">p.project_name</when>
+                <when test="sort == 'salesUserName'">p.sales_user_name</when>
+                <when test="sort == 'projectManagerName'">p.project_manager_name</when>
+                <when test="sort == 'contractDate'">p.contract_date</when>
+                <otherwise>p.project_id</otherwise>
+            </choose>
+            <choose>
+                <when test="sortDirection == 'desc'">DESC</when>
+                <otherwise>ASC</otherwise>
+            </choose>
+        </if>
     </select>
 
     <select id="advancedSearchProjects" parameterType="com.example.demo.dto.AdvancedSearchForm" resultType="com.example.demo.dto.SearchResult">
@@ -170,6 +184,20 @@
                 </choose>
             </foreach>
         </where>
-        ORDER BY p.project_id
+        <if test="sort != null and sort != ''">
+            ORDER BY
+            <choose>
+                <when test="sort == 'projectId'">p.project_id</when>
+                <when test="sort == 'projectName'">p.project_name</when>
+                <when test="sort == 'salesUserName'">p.sales_user_name</when>
+                <when test="sort == 'projectManagerName'">p.project_manager_name</when>
+                <when test="sort == 'contractDate'">p.contract_date</when>
+                <otherwise>p.project_id</otherwise>
+            </choose>
+            <choose>
+                <when test="sortDirection == 'desc'">DESC</when>
+                <otherwise>ASC</otherwise>
+            </choose>
+        </if>
     </select>
 </mapper>
