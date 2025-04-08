@@ -3,32 +3,36 @@ var app = builder.Build();
 
 app.MapGet("/", async (HttpContext context) =>
 {
+    // ① ユーザー情報を取得
     var user = context.User?.Identity?.Name ?? "anonymous";
 
+    // ② Spring Boot へのリクエストを準備
     using var client = new HttpClient();
     var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/");
     request.Headers.Add("X-Remote-User", user);
 
+    // ③ Spring Boot に送信 & レスポンス取得
     var response = await client.SendAsync(request);
 
-    context.Response.StatusCode = (int)response.StatusCode;
+    // ④ レスポンスの本文を取得（バイト・文字列両方で確認）
+    var htmlBytes = await response.Content.ReadAsByteArrayAsync();
+    var htmlString = System.Text.Encoding.UTF8.GetString(htmlBytes);
 
-    // Spring Boot からのヘッダーをコピー（必要に応じて charset や content-type も）
+    // ⑤ デバッグ出力モード：情報をプレーンテキストで表示
+    context.Response.ContentType = "text/plain; charset=utf-8";
+    await context.Response.WriteAsync($"[DEBUG] User: {user}\n");
+    await context.Response.WriteAsync($"[DEBUG] Status Code: {(int)response.StatusCode}\n");
+
+    await context.Response.WriteAsync("\n[DEBUG] Response Headers:\n");
     foreach (var header in response.Headers)
-    {
-        context.Response.Headers[header.Key] = string.Join(",", header.Value);
-    }
-
+        await context.Response.WriteAsync($"{header.Key}: {string.Join(",", header.Value)}\n");
     foreach (var header in response.Content.Headers)
-    {
-        context.Response.Headers[header.Key] = string.Join(",", header.Value);
-    }
+        await context.Response.WriteAsync($"{header.Key}: {string.Join(",", header.Value)}\n");
 
-    // 文字化け防止（明示的に UTF-8 指定）
-    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.WriteAsync($"\n[DEBUG] Body Length: {htmlBytes.Length} bytes\n");
 
-    var content = await response.Content.ReadAsByteArrayAsync();
-    await context.Response.Body.WriteAsync(content);
+    await context.Response.WriteAsync("\n[DEBUG] Body Preview:\n");
+    await context.Response.WriteAsync(htmlString.Substring(0, Math.Min(1000, htmlString.Length))); // 最初の1000文字だけ表示
 });
 
 app.Run();
