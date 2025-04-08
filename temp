@@ -1,0 +1,12 @@
+app.Run(async context =>
+{
+    var user = context.User?.Identity?.Name ?? "anonymous";
+
+    using var client = new HttpClient();
+    var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/api/user");
+    request.Headers.Add("X-Remote-User", user);
+
+    await client.SendAsync(request); // 応答内容は無視
+
+    await context.Response.WriteAsync($"User: {user}");
+});
