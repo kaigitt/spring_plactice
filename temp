@@ -1,12 +1,30 @@
-app.Run(async context =>
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapGet("/", async (HttpContext context) =>
 {
     var user = context.User?.Identity?.Name ?? "anonymous";
 
     using var client = new HttpClient();
-    var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/api/user");
+    var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/");
     request.Headers.Add("X-Remote-User", user);
 
-    await client.SendAsync(request); // 応答内容は無視
+    // Spring Boot に送信
+    var response = await client.SendAsync(request);
 
-    await context.Response.WriteAsync($"User: {user}");
+    // コンテンツをそのままコピーしてクライアントに返す
+    context.Response.StatusCode = (int)response.StatusCode;
+    foreach (var header in response.Headers)
+    {
+        context.Response.Headers[header.Key] = string.Join(",", header.Value);
+    }
+    foreach (var header in response.Content.Headers)
+    {
+        context.Response.Headers[header.Key] = string.Join(",", header.Value);
+    }
+
+    var content = await response.Content.ReadAsByteArrayAsync();
+    await context.Response.Body.WriteAsync(content);
 });
+
+app.Run();
