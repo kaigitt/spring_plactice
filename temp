@@ -9,19 +9,23 @@ app.MapGet("/", async (HttpContext context) =>
     var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/");
     request.Headers.Add("X-Remote-User", user);
 
-    // Spring Boot に送信
     var response = await client.SendAsync(request);
 
-    // コンテンツをそのままコピーしてクライアントに返す
     context.Response.StatusCode = (int)response.StatusCode;
+
+    // Spring Boot からのヘッダーをコピー（必要に応じて charset や content-type も）
     foreach (var header in response.Headers)
     {
         context.Response.Headers[header.Key] = string.Join(",", header.Value);
     }
+
     foreach (var header in response.Content.Headers)
     {
         context.Response.Headers[header.Key] = string.Join(",", header.Value);
     }
+
+    // 文字化け防止（明示的に UTF-8 指定）
+    context.Response.ContentType = "text/html; charset=utf-8";
 
     var content = await response.Content.ReadAsByteArrayAsync();
     await context.Response.Body.WriteAsync(content);
