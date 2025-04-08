@@ -3,36 +3,24 @@ var app = builder.Build();
 
 app.MapGet("/", async (HttpContext context) =>
 {
-    // ① ユーザー情報を取得
     var user = context.User?.Identity?.Name ?? "anonymous";
 
-    // ② Spring Boot へのリクエストを準備
     using var client = new HttpClient();
     var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/");
     request.Headers.Add("X-Remote-User", user);
 
-    // ③ Spring Boot に送信 & レスポンス取得
     var response = await client.SendAsync(request);
+    var html = await response.Content.ReadAsByteArrayAsync();
 
-    // ④ レスポンスの本文を取得（バイト・文字列両方で確認）
-    var htmlBytes = await response.Content.ReadAsByteArrayAsync();
-    var htmlString = System.Text.Encoding.UTF8.GetString(htmlBytes);
+    context.Response.StatusCode = (int)response.StatusCode;
+    context.Response.ContentType = "text/html; charset=utf-8";
 
-    // ⑤ デバッグ出力モード：情報をプレーンテキストで表示
-    context.Response.ContentType = "text/plain; charset=utf-8";
-    await context.Response.WriteAsync($"[DEBUG] User: {user}\n");
-    await context.Response.WriteAsync($"[DEBUG] Status Code: {(int)response.StatusCode}\n");
-
-    await context.Response.WriteAsync("\n[DEBUG] Response Headers:\n");
     foreach (var header in response.Headers)
-        await context.Response.WriteAsync($"{header.Key}: {string.Join(",", header.Value)}\n");
+        context.Response.Headers[header.Key] = string.Join(",", header.Value);
     foreach (var header in response.Content.Headers)
-        await context.Response.WriteAsync($"{header.Key}: {string.Join(",", header.Value)}\n");
+        context.Response.Headers[header.Key] = string.Join(",", header.Value);
 
-    await context.Response.WriteAsync($"\n[DEBUG] Body Length: {htmlBytes.Length} bytes\n");
-
-    await context.Response.WriteAsync("\n[DEBUG] Body Preview:\n");
-    await context.Response.WriteAsync(htmlString.Substring(0, Math.Min(1000, htmlString.Length))); // 最初の1000文字だけ表示
+    await context.Response.Body.WriteAsync(html);
 });
 
 app.Run();
