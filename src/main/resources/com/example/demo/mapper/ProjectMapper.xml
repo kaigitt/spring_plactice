@@ -34,21 +34,6 @@
                 AND p.contract_date &lt;= #{form.contractDateTo}
             </if>
         </where>
-<<<<<<< HEAD
-        ORDER BY 
-            <choose>
-                <when test="form.sort == 'project_id'">p.project_id</when>
-                <when test="form.sort == 'project_name'">p.project_name</when>
-                <when test="form.sort == 'sales_user_name'">p.sales_user_name</when>
-                <when test="form.sort == 'project_manager_name'">p.project_manager_name</when>
-                <when test="form.sort == 'contract_date'">p.contract_date</when>
-                <otherwise>p.project_id</otherwise>
-            </choose>
-            <choose>
-                <when test="form.direction == 'desc'">DESC</when>
-                <otherwise>ASC</otherwise>
-            </choose>
-=======
         <if test="sort != null and sort != ''">
             ORDER BY
             <choose>
@@ -64,7 +49,6 @@
                 <otherwise>ASC</otherwise>
             </choose>
         </if>
->>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
     </select>
 
     <select id="advancedSearchProjects" parameterType="com.example.demo.dto.AdvancedSearchForm" resultType="com.example.demo.dto.SearchResult">
@@ -191,21 +175,6 @@
                 </choose>
             </foreach>
         </where>
-<<<<<<< HEAD
-        ORDER BY 
-            <choose>
-                <when test="form.sort == 'project_id'">p.project_id</when>
-                <when test="form.sort == 'project_name'">p.project_name</when>
-                <when test="form.sort == 'sales_user_name'">p.sales_user_name</when>
-                <when test="form.sort == 'project_manager_name'">p.project_manager_name</when>
-                <when test="form.sort == 'contract_date'">p.contract_date</when>
-                <otherwise>p.project_id</otherwise>
-            </choose>
-            <choose>
-                <when test="form.direction == 'desc'">DESC</when>
-                <otherwise>ASC</otherwise>
-            </choose>
-=======
         <if test="sort != null and sort != ''">
             ORDER BY
             <choose>
@@ -221,6 +190,5 @@
                 <otherwise>ASC</otherwise>
             </choose>
         </if>
->>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
     </select>
 </mapper>

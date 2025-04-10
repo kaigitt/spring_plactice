@@ -27,15 +27,9 @@ public class SearchForm {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate contractDateTo;
 
-<<<<<<< HEAD
     // ソート関連のフィールド
     private String sort = "project_id";  // デフォルトはproject_idでソート
     private String direction = "asc";    // デフォルトは昇順
-=======
-    // ソート用のフィールドを追加
-    private String sort;
-    private String sortDirection;
->>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
 
     public void setProjectName(String projectName) {
         this.projectName = StringUtils.hasText(projectName) ? projectName : null;

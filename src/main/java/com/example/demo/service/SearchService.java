@@ -26,23 +26,9 @@ public class SearchService {
     @Autowired
     private ProjectMapper projectMapper;
 
-<<<<<<< HEAD
     public Page<SearchResult> search(SearchForm form, int page, String sort, String direction) {
         try {
             List<SearchResult> results = projectMapper.searchProjects(form, sort, direction);
-=======
-    @Autowired
-    private ProjectRepository projectRepository;
-
-    public Page<SearchResult> search(SearchForm form, int page, String sort, String direction) {
-        try {
-            // ソート条件を設定
-            form.setSort(sort);
-            form.setSortDirection(direction);
-            
-            // 全件取得してページング
-            List<SearchResult> results = projectMapper.searchProjects(form);
->>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
             return createPage(results, page);
         } catch (Exception e) {
             logger.error("検索処理で予期せぬエラーが発生しました", e);
@@ -52,16 +38,7 @@ public class SearchService {
 
     public Page<SearchResult> advancedSearch(AdvancedSearchForm form, int page, String sort, String direction) {
         try {
-<<<<<<< HEAD
             List<SearchResult> results = projectMapper.advancedSearchProjects(form, sort, direction);
-=======
-            // ソート条件を設定
-            form.setSort(sort);
-            form.setSortDirection(direction);
-            
-            // 全件取得してページング
-            List<SearchResult> results = projectMapper.advancedSearchProjects(form);
->>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
             return createPage(results, page);
         } catch (Exception e) {
             logger.error("詳細検索処理で予期せぬエラーが発生しました", e);
