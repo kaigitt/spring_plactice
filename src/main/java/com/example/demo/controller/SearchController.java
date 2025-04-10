@@ -36,6 +36,7 @@ public class SearchController {
     }
 
     @GetMapping("/search")
+<<<<<<< HEAD
     public String search(@ModelAttribute("searchForm") SearchForm form,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "project_id") String sort,
@@ -54,6 +55,25 @@ public class SearchController {
             model.addAttribute("error", "検索処理でエラーが発生しました");
             return "index";
         }
+=======
+    public String search(@ModelAttribute SearchForm searchForm,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "projectId") String sort,
+                        @RequestParam(defaultValue = "asc") String direction,
+                        Model model) {
+        
+        Page<Project> projectPage = searchService.search(searchForm, page, sort, direction);
+        
+        model.addAttribute("projects", projectPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", projectPage.getTotalPages());
+        model.addAttribute("searchForm", searchForm);
+        model.addAttribute("searchType", "simple");
+        model.addAttribute("sort", sort);
+        model.addAttribute("direction", direction);
+        
+        return "search-results";
+>>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
     }
 
     @ExceptionHandler(Exception.class)
@@ -87,6 +107,7 @@ public class SearchController {
     }
 
     @GetMapping("/search/advanced")
+<<<<<<< HEAD
     public String advancedSearch(@ModelAttribute("searchForm") AdvancedSearchForm form,
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "project_id") String sort,
@@ -105,6 +126,25 @@ public class SearchController {
             model.addAttribute("error", "詳細検索処理でエラーが発生しました");
             return "index";
         }
+=======
+    public String advancedSearch(@ModelAttribute AdvancedSearchForm searchForm,
+                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "projectId") String sort,
+                               @RequestParam(defaultValue = "asc") String direction,
+                               Model model) {
+        
+        Page<Project> projectPage = searchService.searchAdvanced(searchForm, page, sort, direction);
+        
+        model.addAttribute("projects", projectPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", projectPage.getTotalPages());
+        model.addAttribute("advancedForm", searchForm);
+        model.addAttribute("searchType", "advanced");
+        model.addAttribute("sort", sort);
+        model.addAttribute("direction", direction);
+        
+        return "search-results";
+>>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
     }
 
     @GetMapping("/search/advanced/csv")

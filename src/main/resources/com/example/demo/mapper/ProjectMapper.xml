@@ -34,6 +34,7 @@
                 AND p.contract_date &lt;= #{form.contractDateTo}
             </if>
         </where>
+<<<<<<< HEAD
         ORDER BY 
             <choose>
                 <when test="form.sort == 'project_id'">p.project_id</when>
@@ -47,6 +48,23 @@
                 <when test="form.direction == 'desc'">DESC</when>
                 <otherwise>ASC</otherwise>
             </choose>
+=======
+        <if test="sort != null and sort != ''">
+            ORDER BY
+            <choose>
+                <when test="sort == 'projectId'">p.project_id</when>
+                <when test="sort == 'projectName'">p.project_name</when>
+                <when test="sort == 'salesUserName'">p.sales_user_name</when>
+                <when test="sort == 'projectManagerName'">p.project_manager_name</when>
+                <when test="sort == 'contractDate'">p.contract_date</when>
+                <otherwise>p.project_id</otherwise>
+            </choose>
+            <choose>
+                <when test="sortDirection == 'desc'">DESC</when>
+                <otherwise>ASC</otherwise>
+            </choose>
+        </if>
+>>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
     </select>
 
     <select id="advancedSearchProjects" parameterType="com.example.demo.dto.AdvancedSearchForm" resultType="com.example.demo.dto.SearchResult">
@@ -173,6 +191,7 @@
                 </choose>
             </foreach>
         </where>
+<<<<<<< HEAD
         ORDER BY 
             <choose>
                 <when test="form.sort == 'project_id'">p.project_id</when>
@@ -186,5 +205,22 @@
                 <when test="form.direction == 'desc'">DESC</when>
                 <otherwise>ASC</otherwise>
             </choose>
+=======
+        <if test="sort != null and sort != ''">
+            ORDER BY
+            <choose>
+                <when test="sort == 'projectId'">p.project_id</when>
+                <when test="sort == 'projectName'">p.project_name</when>
+                <when test="sort == 'salesUserName'">p.sales_user_name</when>
+                <when test="sort == 'projectManagerName'">p.project_manager_name</when>
+                <when test="sort == 'contractDate'">p.contract_date</when>
+                <otherwise>p.project_id</otherwise>
+            </choose>
+            <choose>
+                <when test="sortDirection == 'desc'">DESC</when>
+                <otherwise>ASC</otherwise>
+            </choose>
+        </if>
+>>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
     </select>
 </mapper>

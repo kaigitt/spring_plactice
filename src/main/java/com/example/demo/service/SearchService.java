@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +21,28 @@ import java.util.List;
 @Transactional
 public class SearchService {
     private static final Logger logger = LoggerFactory.getLogger(SearchService.class);
-    private static final int PAGE_SIZE = 5;
+    private static final int PAGE_SIZE = 10;
 
     @Autowired
     private ProjectMapper projectMapper;
 
+<<<<<<< HEAD
     public Page<SearchResult> search(SearchForm form, int page, String sort, String direction) {
         try {
             List<SearchResult> results = projectMapper.searchProjects(form, sort, direction);
+=======
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    public Page<SearchResult> search(SearchForm form, int page, String sort, String direction) {
+        try {
+            // ソート条件を設定
+            form.setSort(sort);
+            form.setSortDirection(direction);
+            
+            // 全件取得してページング
+            List<SearchResult> results = projectMapper.searchProjects(form);
+>>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
             return createPage(results, page);
         } catch (Exception e) {
             logger.error("検索処理で予期せぬエラーが発生しました", e);
@@ -36,12 +52,28 @@ public class SearchService {
 
     public Page<SearchResult> advancedSearch(AdvancedSearchForm form, int page, String sort, String direction) {
         try {
+<<<<<<< HEAD
             List<SearchResult> results = projectMapper.advancedSearchProjects(form, sort, direction);
+=======
+            // ソート条件を設定
+            form.setSort(sort);
+            form.setSortDirection(direction);
+            
+            // 全件取得してページング
+            List<SearchResult> results = projectMapper.advancedSearchProjects(form);
+>>>>>>> 45fad7be07937befccfbb3f71ed040b8c78d89bc
             return createPage(results, page);
         } catch (Exception e) {
             logger.error("詳細検索処理で予期せぬエラーが発生しました", e);
             throw new RuntimeException("詳細検索処理でエラーが発生しました", e);
         }
+    }
+
+    private Page<SearchResult> createPage(List<SearchResult> results, int page) {
+        int start = page * PAGE_SIZE;
+        int end = Math.min((start + PAGE_SIZE), results.size());
+        List<SearchResult> pageContent = results.subList(start, end);
+        return new PageImpl<>(pageContent, PageRequest.of(page, PAGE_SIZE), results.size());
     }
 
     public List<SearchResult> getAllAdvancedSearchResults(AdvancedSearchForm form) {
@@ -73,10 +105,9 @@ public class SearchService {
         }
     }
 
-    private Page<SearchResult> createPage(List<SearchResult> results, int page) {
-        int start = page * PAGE_SIZE;
-        int end = Math.min((start + PAGE_SIZE), results.size());
-        List<SearchResult> pageContent = results.subList(start, end);
-        return new PageImpl<>(pageContent, PageRequest.of(page, PAGE_SIZE), results.size());
+    private Pageable createPageable(int page, String sort, String direction) {
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Sort sorting = Sort.by(sortDirection, sort);
+        return PageRequest.of(page, 10, sorting);
     }
 } 
