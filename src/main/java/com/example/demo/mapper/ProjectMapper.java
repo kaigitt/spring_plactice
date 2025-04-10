@@ -15,7 +15,7 @@ public interface ProjectMapper {
     Project findById(@Param("projectId") String projectId);
 
     // XMLで定義された検索メソッド
-    List<SearchResult> searchProjects(SearchForm form);
+    List<SearchResult> searchProjects(SearchForm form, @Param("sort") String sort, @Param("direction") String direction);
 
-    List<SearchResult> advancedSearchProjects(AdvancedSearchForm form);
+    List<SearchResult> advancedSearchProjects(AdvancedSearchForm form, @Param("sort") String sort, @Param("direction") String direction);
 } 

@@ -27,6 +27,10 @@ public class SearchForm {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate contractDateTo;
 
+    // ソート関連のフィールド
+    private String sort = "project_id";  // デフォルトはproject_idでソート
+    private String direction = "asc";    // デフォルトは昇順
+
     public void setProjectName(String projectName) {
         this.projectName = StringUtils.hasText(projectName) ? projectName : null;
     }
@@ -58,5 +62,22 @@ public class SearchForm {
 
     public void setContractDateTo(LocalDate contractDateTo) {
         this.contractDateTo = contractDateTo;
+    }
+
+    // ソート関連のゲッターとセッター
+    public String getSort() {
+        return sort;
+    }
+    
+    public void setSort(String sort) {
+        this.sort = sort;
+    }
+    
+    public String getDirection() {
+        return direction;
+    }
+    
+    public void setDirection(String direction) {
+        this.direction = direction;
     }
 } 

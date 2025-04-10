@@ -39,7 +39,7 @@
                         <input type="text" class="form-control" th:field="*{projectManagerName}" placeholder="プロジェクトマネージャー">
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">検索</button>
+                        <button type="button" class="btn btn-primary w-100" id="simpleSearchButton">検索</button>
                     </div>
                 </div>
             </form>
@@ -111,7 +111,7 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary">検索</button>
+                                <button type="button" class="btn btn-primary" id="advancedSearchButton">検索</button>
                                 <button type="button" class="btn btn-success" onclick="downloadCSV()">CSV出力</button>
                                 <button type="reset" class="btn btn-secondary">クリア</button>
                             </div>
@@ -659,6 +659,66 @@
                     }
                 });
             }
+
+            const simpleSearchButton = document.getElementById('simpleSearchButton');
+            const simpleSearchForm = document.getElementById('simpleSearchForm');
+            const searchCountModal = new bootstrap.Modal(document.getElementById('searchCountModal'));
+
+            simpleSearchButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // フォームのバリデーション
+                if (!simpleSearchForm.checkValidity()) {
+                    simpleSearchForm.reportValidity();
+                    return;
+                }
+
+                // 検索件数を取得してモーダルを表示
+                fetch('/search/count?' + new URLSearchParams(new FormData(simpleSearchForm)))
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('searchCountModalBody').innerHTML = html;
+                        searchCountModal.show();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('検索件数の取得に失敗しました');
+                    });
+            });
+
+            const advancedSearchButton = document.getElementById('advancedSearchButton');
+            const advancedSearchForm = document.getElementById('advancedSearchForm');
+
+            advancedSearchButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // フォームのバリデーション
+                if (!advancedSearchForm.checkValidity()) {
+                    advancedSearchForm.reportValidity();
+                    return;
+                }
+
+                // 検索件数を取得してモーダルを表示
+                fetch('/search/advanced/count?' + new URLSearchParams(new FormData(advancedSearchForm)))
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('searchCountModalBody').innerHTML = html;
+                        searchCountModal.show();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('検索件数の取得に失敗しました');
+                    });
+            });
+
+            // 検索実行ボタンのクリックイベント（詳細検索用）
+            document.getElementById('proceedSearchBtn').addEventListener('click', function() {
+                if (document.getElementById('simpleSearchForm').style.display !== 'none') {
+                    simpleSearchForm.submit();
+                } else {
+                    advancedSearchForm.submit();
+                }
+            });
 
             // 初期化処理の実行
             setupEventListeners();

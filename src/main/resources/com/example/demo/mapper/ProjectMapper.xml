@@ -9,32 +9,44 @@
             LEFT JOIN wbs w ON p.project_id = w.project_id
             LEFT JOIN engineers e ON w.wbs_no = e.wbs_no
         <where>
-            <if test="projectName != null and projectName != ''">
-                AND p.project_name LIKE CONCAT('%', #{projectName}, '%')
+            <if test="form.projectName != null and form.projectName != ''">
+                AND p.project_name LIKE CONCAT('%', #{form.projectName}, '%')
             </if>
-            <if test="salesUserName != null and salesUserName != ''">
-                AND p.sales_user_name LIKE CONCAT('%', #{salesUserName}, '%')
+            <if test="form.salesUserName != null and form.salesUserName != ''">
+                AND p.sales_user_name LIKE CONCAT('%', #{form.salesUserName}, '%')
             </if>
-            <if test="projectManagerName != null and projectManagerName != ''">
-                AND p.project_manager_name LIKE CONCAT('%', #{projectManagerName}, '%')
+            <if test="form.projectManagerName != null and form.projectManagerName != ''">
+                AND p.project_manager_name LIKE CONCAT('%', #{form.projectManagerName}, '%')
             </if>
-            <if test="wbsNo != null and wbsNo != ''">
-                AND w.wbs_no = #{wbsNo}
+            <if test="form.wbsNo != null and form.wbsNo != ''">
+                AND w.wbs_no = #{form.wbsNo}
             </if>
-            <if test="wbsName != null and wbsName != ''">
-                AND w.wbs_name LIKE CONCAT('%', #{wbsName}, '%')
+            <if test="form.wbsName != null and form.wbsName != ''">
+                AND w.wbs_name LIKE CONCAT('%', #{form.wbsName}, '%')
             </if>
-            <if test="engineerName != null and engineerName != ''">
-                AND e.engineer_name LIKE CONCAT('%', #{engineerName}, '%')
+            <if test="form.engineerName != null and form.engineerName != ''">
+                AND e.engineer_name LIKE CONCAT('%', #{form.engineerName}, '%')
             </if>
-            <if test="contractDateFrom != null">
-                AND p.contract_date >= #{contractDateFrom}
+            <if test="form.contractDateFrom != null">
+                AND p.contract_date >= #{form.contractDateFrom}
             </if>
-            <if test="contractDateTo != null">
-                AND p.contract_date &lt;= #{contractDateTo}
+            <if test="form.contractDateTo != null">
+                AND p.contract_date &lt;= #{form.contractDateTo}
             </if>
         </where>
-        ORDER BY p.project_id
+        ORDER BY 
+            <choose>
+                <when test="form.sort == 'project_id'">p.project_id</when>
+                <when test="form.sort == 'project_name'">p.project_name</when>
+                <when test="form.sort == 'sales_user_name'">p.sales_user_name</when>
+                <when test="form.sort == 'project_manager_name'">p.project_manager_name</when>
+                <when test="form.sort == 'contract_date'">p.contract_date</when>
+                <otherwise>p.project_id</otherwise>
+            </choose>
+            <choose>
+                <when test="form.direction == 'desc'">DESC</when>
+                <otherwise>ASC</otherwise>
+            </choose>
     </select>
 
     <select id="advancedSearchProjects" parameterType="com.example.demo.dto.AdvancedSearchForm" resultType="com.example.demo.dto.SearchResult">
@@ -102,15 +114,6 @@
                     </when>
                     <when test="field == 'wbs_no'">
                         <choose>
-                            <when test="comparisons[i] == 'contains'">
-                                w.wbs_no LIKE CONCAT('%', #{values[${i}]}, '%')
-                            </when>
-                            <when test="comparisons[i] == 'startsWith'">
-                                w.wbs_no LIKE CONCAT(#{values[${i}]}, '%')
-                            </when>
-                            <when test="comparisons[i] == 'endsWith'">
-                                w.wbs_no LIKE CONCAT('%', #{values[${i}]})
-                            </when>
                             <when test="comparisons[i] == 'equals'">
                                 w.wbs_no = #{values[${i}]}
                             </when>
@@ -170,6 +173,18 @@
                 </choose>
             </foreach>
         </where>
-        ORDER BY p.project_id
+        ORDER BY 
+            <choose>
+                <when test="form.sort == 'project_id'">p.project_id</when>
+                <when test="form.sort == 'project_name'">p.project_name</when>
+                <when test="form.sort == 'sales_user_name'">p.sales_user_name</when>
+                <when test="form.sort == 'project_manager_name'">p.project_manager_name</when>
+                <when test="form.sort == 'contract_date'">p.contract_date</when>
+                <otherwise>p.project_id</otherwise>
+            </choose>
+            <choose>
+                <when test="form.direction == 'desc'">DESC</when>
+                <otherwise>ASC</otherwise>
+            </choose>
     </select>
 </mapper>

@@ -24,9 +24,9 @@ public class SearchService {
     @Autowired
     private ProjectMapper projectMapper;
 
-    public Page<SearchResult> search(SearchForm form, int page) {
+    public Page<SearchResult> search(SearchForm form, int page, String sort, String direction) {
         try {
-            List<SearchResult> results = projectMapper.searchProjects(form);
+            List<SearchResult> results = projectMapper.searchProjects(form, sort, direction);
             return createPage(results, page);
         } catch (Exception e) {
             logger.error("検索処理で予期せぬエラーが発生しました", e);
@@ -34,9 +34,9 @@ public class SearchService {
         }
     }
 
-    public Page<SearchResult> advancedSearch(AdvancedSearchForm form, int page) {
+    public Page<SearchResult> advancedSearch(AdvancedSearchForm form, int page, String sort, String direction) {
         try {
-            List<SearchResult> results = projectMapper.advancedSearchProjects(form);
+            List<SearchResult> results = projectMapper.advancedSearchProjects(form, sort, direction);
             return createPage(results, page);
         } catch (Exception e) {
             logger.error("詳細検索処理で予期せぬエラーが発生しました", e);
@@ -46,7 +46,7 @@ public class SearchService {
 
     public List<SearchResult> getAllAdvancedSearchResults(AdvancedSearchForm form) {
         try {
-            return projectMapper.advancedSearchProjects(form);
+            return projectMapper.advancedSearchProjects(form, "project_id", "asc");
         } catch (Exception e) {
             logger.error("CSV出力用の検索処理で予期せぬエラーが発生しました", e);
             throw new RuntimeException("CSV出力用の検索処理でエラーが発生しました", e);
@@ -55,7 +55,7 @@ public class SearchService {
 
     public long getSearchCount(SearchForm form) {
         try {
-            List<SearchResult> results = projectMapper.searchProjects(form);
+            List<SearchResult> results = projectMapper.searchProjects(form, "project_id", "asc");
             return results.size();
         } catch (Exception e) {
             logger.error("検索件数の取得で予期せぬエラーが発生しました", e);
@@ -65,7 +65,7 @@ public class SearchService {
 
     public long getAdvancedSearchCount(AdvancedSearchForm form) {
         try {
-            List<SearchResult> results = projectMapper.advancedSearchProjects(form);
+            List<SearchResult> results = projectMapper.advancedSearchProjects(form, "project_id", "asc");
             return results.size();
         } catch (Exception e) {
             logger.error("詳細検索の件数取得で予期せぬエラーが発生しました", e);
